@@ -1,0 +1,10 @@
+# build output
+/node_modules
+/dist
+/src-tauri/target
+/src-tauri/gen
+
+# local
+*.local
+app-icon.png
+.DS_Store
