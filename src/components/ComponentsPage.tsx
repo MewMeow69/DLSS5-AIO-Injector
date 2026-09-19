@@ -4,6 +4,8 @@ import { listen } from "@tauri-apps/api/event";
 import {
   componentsCheckedAt,
   downloadComponent,
+  getAppSettings,
+  setAppSettings,
   importArtifacts,
   listArtifacts,
   listComponents,
@@ -177,6 +179,10 @@ export function ComponentsPage({ onArtifactsChanged }: { onArtifactsChanged: (a:
     const next = !allowBeta;
     setAllowBeta(next);
     persistBeta(next);
+    // keep the Settings page in sync with the same preference
+    void getAppSettings()
+      .then((s) => setAppSettings({ ...s, allowBeta: next }))
+      .catch(() => {});
   };
 
   const visible = useMemo(() => {

@@ -624,6 +624,7 @@ pub fn run(progress: Progress, detection: &Detection, opts: &InstallOptions) -> 
     // 1. OptiScaler (skipped entirely on the RenoDX provider path)
     let mut proxy = String::from("(none)");
     let mut opti_root: Option<PathBuf> = None;
+    let mut opti_zip: Option<PathBuf> = None;
     if opts.uses_optiscaler() {
         emit("optiscaler", "OptiScaler NR", "staging package", false, None);
         let opti_art = opts
@@ -634,6 +635,9 @@ pub fn run(progress: Progress, detection: &Detection, opts: &InstallOptions) -> 
             .or_else(|| ensure("optiscaler-wilsjo2", None, "optiscaler-wilsjo2", "OptiScaler"))
             .ok_or("no OptiScaler build available and the download failed")?;
         let src_zip = PathBuf::from(&opti_art.path);
+        if src_zip.is_file() {
+            opti_zip = Some(src_zip.clone());
+        }
         let stage = staged_zip_root(&src_zip, "optiscaler")?;
         let mut root = stage.clone();
         if !root.join("OptiScaler.dll").is_file() {
@@ -1071,6 +1075,13 @@ pub fn run(progress: Progress, detection: &Detection, opts: &InstallOptions) -> 
                     .arg(&deps);
                 if nr.is_file() {
                     cmd.arg("-DlssNrDll").arg(&nr);
+                }
+                if opts.uses_optiscaler() {
+                    // Feed the script the build the user picked; otherwise it downloads
+                    // Dagherbou/OptiScaler_DLSSNR (~130 MB) and silently replaces it.
+                    if let Some(zip) = opti_zip.as_ref() {
+                        cmd.arg("-OptiScalerZip").arg(zip);
+                    }
                 }
                 if !opts.uses_optiscaler() {
                     let renodx = renodx_artifact_for(opts.provider())

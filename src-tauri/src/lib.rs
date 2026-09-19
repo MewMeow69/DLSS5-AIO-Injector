@@ -13,10 +13,11 @@ mod pe;
 mod registry;
 mod settings;
 mod vdf;
+mod verify;
 mod version;
 
 use artifacts::Artifact;
-use install::{ComponentRecord, GameState, InstallOptions, InstallPlan, InstallReport};
+use install::{GameState, InstallOptions, InstallPlan, InstallReport};
 use model::{Detection, Game, GpuInfo};
 use registry::Component;
 use std::path::{Path, PathBuf};
@@ -331,19 +332,15 @@ async fn run_installer_file(path: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn installed_games() -> Vec<(String, Vec<ComponentRecord>)> {
-    blocking(|| {
-        library::scan_all()
-            .into_iter()
-            .filter_map(|g| {
-                let st = install::state(Path::new(&g.install_dir));
-                if st.managed {
-                    Some((g.install_dir, st.components))
-                } else {
-                    None
-                }
-            })
-            .collect()
+async fn verify_install(install_dir: String, exe_hint: Option<String>) -> verify::VerifyReport {
+    blocking(move || {
+        let dir = Path::new(&install_dir);
+        if !dir.is_dir() {
+            return verify::VerifyReport::default();
+        }
+        // the presence check reuses the detector only for engine hints
+        let detection = detect::detect(dir, exe_hint.as_deref());
+        verify::verify(dir, Some(&detection))
     })
     .await
     .unwrap_or_default()
@@ -389,7 +386,7 @@ pub fn run() {
             rollback_game,
             uninstall_game,
             run_installer_file,
-            installed_games
+            verify_install
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

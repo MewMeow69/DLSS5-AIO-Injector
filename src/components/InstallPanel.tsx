@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { runInstallerFile, getAppSettings } from "../lib/api";
+import { runInstallerFile, getAppSettings, verifyInstall } from "../lib/api";
 import {
+  COMPONENT_KIND_LABEL,
   downloadComponent,
   gameState,
   installGame,
@@ -20,8 +21,9 @@ import type {
   InstallOptions,
   InstallPlan,
   InstallProgress,
+  VerifyReport,
 } from "../lib/types";
-import { Bolt, Download, List, Play, Trash, Undo } from "./icons";
+import { Bolt, Check as CheckIcon, Download, List, Play, Trash, Undo } from "./icons";
 import { FORK_LABEL } from "../lib/kinds";
 import { Field, Pill, Popup, Progress, SectionLabel, Select, Toggle } from "./ui";
 
@@ -120,6 +122,7 @@ export function InstallPanel({
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showLog, setShowLog] = useState(false);
+  const [verify, setVerify] = useState<VerifyReport | null>(null);
 
   useEffect(() => {
     setOptions((prev) => {
@@ -134,13 +137,16 @@ export function InstallPanel({
 
   useEffect(() => {
     void listArtifacts().then(setArtifacts).catch(() => {});
-    void getAppSettings()
-      .then((s) => {
-        if (s.defaultPreset && s.defaultPreset !== "auto") {
-          setOptions((o) => ({ ...o, preset: s.defaultPreset }));
-        }
-      })
-      .catch(() => {});
+    // the app-wide default preset only applies when this game has no saved choice
+    if (!localStorage.getItem(storeKey)) {
+      void getAppSettings()
+        .then((s) => {
+          if (s.defaultPreset && s.defaultPreset !== "auto") {
+            setOptions((o) => ({ ...o, preset: s.defaultPreset }));
+          }
+        })
+        .catch(() => {});
+    }
     const un = listen<DownloadProgress>("download:progress", (e) => {
       setDownload(e.payload);
       if (e.payload.done) {
@@ -217,6 +223,15 @@ export function InstallPanel({
     }
   };
 
+  const doVerify = async () => {
+    setError(null);
+    try {
+      setVerify(await verifyInstall(game.installDir, detection?.exe ?? null));
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
   const doUninstall = async () => {
     try {
       setResult(await uninstallGame(game.installDir));
@@ -250,7 +265,7 @@ export function InstallPanel({
   }, [artifacts]);
   const installedLabel = useMemo(() => {
     if (!state?.components?.length) return null;
-    return state.components.map((c) => `${c.kind} ${c.version}`).join(" · ");
+    return state.components.map((c) => `${COMPONENT_KIND_LABEL[c.kind] ?? c.kind} ${c.version}`).join(" · ");
   }, [state]);
 
   return (
@@ -477,6 +492,10 @@ export function InstallPanel({
           <List />
           Preview Plan
         </button>
+        <button onClick={() => void doVerify()} className="btn btn-success btn-sm" disabled={!installed} title="Check every file the install needs, plus the game logs">
+          <CheckIcon />
+          Verify Install
+        </button>
         {installed && (
           <>
             <button
@@ -495,6 +514,28 @@ export function InstallPanel({
           </>
         )}
       </div>
+
+      {verify && (
+        <div className="fade-in tile-flush mt-3 p-3">
+          <SectionLabel>Install Check</SectionLabel>
+          <div className="mt-1 space-y-1">
+            {verify.checks.map((c) => (
+              <div key={c.label} className="flex items-baseline gap-2 text-[11.5px]">
+                <span className={c.ok ? "text-deck-green" : "text-deck-rose"}>{c.ok ? "✓" : "✕"}</span>
+                <span className="font-semibold">{c.label}</span>
+                <span className="truncate text-deck-muted">{c.detail}</span>
+              </div>
+            ))}
+          </div>
+          {verify.hints.length > 0 && (
+            <div className="mt-2 space-y-1 text-[11.5px] text-deck-amber">
+              {verify.hints.map((h) => (
+                <div key={h}>· {h}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {plan && (
         <div className="fade-in tile-flush mt-3 p-3">

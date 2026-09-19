@@ -150,6 +150,18 @@ export interface CacheStats {
   downloaded: number;
 }
 
+export interface VerifyCheck {
+  label: string;
+  ok: boolean;
+  detail: string;
+}
+
+export interface VerifyReport {
+  checks: VerifyCheck[];
+  hints: string[];
+  managed: boolean;
+}
+
 export interface AppUpdate {
   current: string;
   latest: string;

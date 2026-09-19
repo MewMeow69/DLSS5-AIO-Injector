@@ -14,6 +14,7 @@ import type {
   InstallOptions,
   InstallPlan,
   InstallReport,
+  VerifyReport,
 } from "./types";
 
 export const scanLibrary = () => invoke<Game[]>("scan_library");
@@ -44,6 +45,9 @@ export const listComponents = (refresh: boolean, allowBeta: boolean) =>
 export const componentsCheckedAt = () => invoke<number>("components_checked_at");
 
 export const runInstallerFile = (path: string) => invoke<void>("run_installer_file", { path });
+
+export const verifyInstall = (installDir: string, exeHint?: string | null) =>
+  invoke<VerifyReport>("verify_install", { installDir, exeHint: exeHint ?? null });
 
 export const getAppSettings = () => invoke<AppSettings>("get_app_settings");
 export const setAppSettings = (settings: AppSettings) => invoke<void>("set_app_settings", { settings });

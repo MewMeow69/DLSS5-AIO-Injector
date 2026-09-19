@@ -13,6 +13,13 @@ Third alpha. One click turns a normal game install into a Neural Rendering + Fra
 - **DLSS preset control** per game — force a DLSS render preset (D–K) for every quality mode, plus the generic NGX app-id
   fix for games where overrides do not apply.
 - **App update banner** — the start-up check now looks at this repository's releases and offers the new version.
+- **Verify Install** — after installing, the game panel's install tab checks the folder against what was selected
+  (proxy DLL, `OptiScaler.ini`, runtime folders, NR/DLSS/DLSSD runtimes, XeFG libraries, sm86 config **and** its
+  `version.dll` proxy, feeder add-on, ReShade host, rollback snapshot) and reads the feeder/OptiScaler logs for the
+  usual startup problems.
+- Fixed: the neural consumer the feeder installer placed ignored the build you picked and always fetched the
+  Dagherbou OptiScaler-DLSSNR release (≈130 MB). The chosen build's zip is now handed to the installer.
+- Fixed: the per-game DLSS preset was overwritten by the global default preset on every re-open.
 - Stale extraction folders are cleaned up automatically; installed games are never touched by any of the settings.
 
 ## New in 0.1.1
@@ -46,7 +53,7 @@ Third alpha. One click turns a normal game install into a Neural Rendering + Fra
 
 ## Install
 
-Download `DLSS5-AIO-Injector_0.1.0_x64-setup.exe` below and run it. It installs per-user (no administrator prompt) and
+Download `DLSS5 AIO Injector_0.1.2_x64-setup.exe` below and run it. It installs per-user (no administrator prompt) and
 bootstraps the WebView2 runtime automatically if it is missing — no other prerequisites.
 
 ## Known limitations (alpha)
