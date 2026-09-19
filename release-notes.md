@@ -4,6 +4,9 @@ Third alpha. One click turns a normal game install into a Neural Rendering + Fra
 
 ## New in 0.1.2
 
+- **How to Use page** — a short in-app guide: the 3-step flow, when to pick OptiScaler NR vs the RenoDX path, which NR
+  runtime your GPU needs (and why RTX 20/30 uses the ShortFuse build with a lower model resolution), which frame
+  generation to pick for what a game already has, presets, overlay keys and fixes for the usual problems.
 - **Settings page** — default NR preset, "leave NR disabled after install", pre-release channel, component update checks
   on start, optional GitHub token (removes API rate-limit warnings), storage breakdown with a download-cache clearer,
   manually added game folders, app update check and a data reset.

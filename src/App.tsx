@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import "./App.css";
 import { ComponentsPage } from "./components/ComponentsPage";
+import { GuidePage } from "./components/GuidePage";
 import { SettingsPage } from "./components/SettingsPage";
 import { GameCard } from "./components/GameCard";
 import { GameDetail } from "./components/GameDetail";
@@ -194,6 +195,8 @@ export default function App() {
         <main className="flex min-w-0 flex-1 flex-col">
         {view === "components" ? (
           <ComponentsPage onArtifactsChanged={onArtifactsChanged} />
+        ) : view === "guide" ? (
+          <GuidePage />
         ) : view === "settings" ? (
           <SettingsPage
             onGamesChanged={setGames}

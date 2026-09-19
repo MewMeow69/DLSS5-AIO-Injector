@@ -2,7 +2,7 @@ import type { GpuInfo } from "../lib/types";
 import { RUNTIME_LABEL } from "../lib/api";
 import { Pill } from "./ui";
 
-export type View = "library" | "components" | "settings";
+export type View = "library" | "components" | "guide" | "settings";
 
 function NavItem({
   label,
@@ -66,6 +66,7 @@ export function Sidebar({
           onClick={() => onView("components")}
           badge={updateCount}
         />
+        <NavItem label="How to Use" active={view === "guide"} onClick={() => onView("guide")} />
         <NavItem label="Settings" active={view === "settings"} onClick={() => onView("settings")} />
       </nav>
 
