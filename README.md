@@ -1,6 +1,5 @@
 # DLSS5 AIO Injector
 
-**One click turns a normal game install into a Neural Rendering + Frame Generation setup.**
 The app finds your games, works out what they already have (DLSS / FSR / XeSS, frame generation, which GPU you own),
 and installs the complete stack for the right path — OptiScaler, the NVIDIA Neural Rendering runtime, the DLSS 5
 Feeder, ReShade and the frame-generation runtimes — with per-game settings you can tune before you ever launch the game.
