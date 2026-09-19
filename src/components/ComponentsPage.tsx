@@ -388,7 +388,7 @@ export function ComponentsPage({ onArtifactsChanged }: { onArtifactsChanged: (a:
                             className="btn btn-amber btn-sm"
                           >
                             <Bolt />
-                            Beta {c.betaLatest.version}
+                            Pre-release {c.betaLatest.version}
                           </button>
                         )}
                         {c.id.startsWith("optiscaler") && hasMfgAsset && (
