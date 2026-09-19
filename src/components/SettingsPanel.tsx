@@ -208,6 +208,44 @@ export function SettingsPanel({ game }: { game: Game; detection?: Detection }) {
         </div>
       )}
 
+      {showNr && (
+        <div className="tile p-4">
+          <SectionLabel>DLSS Super Resolution</SectionLabel>
+          <Field label="Render Preset Override" hint="Force one DLSS preset for every quality mode">
+            <Toggle
+              on={settings.dlss.presetOverride}
+              onChange={(v) => patch((s) => ((s.dlss.presetOverride = v), s))}
+            />
+          </Field>
+          {settings.dlss.presetOverride && (
+            <Field label="Preset" hint="Newer letters ship newer DLSS transformers (E/F are common picks)">
+              <Select
+                value={String(settings.dlss.preset)}
+                options={[
+                  { value: "0", label: "Default (game)" },
+                  { value: "12", label: "K" },
+                  { value: "11", label: "J" },
+                  { value: "10", label: "I" },
+                  { value: "9", label: "H" },
+                  { value: "8", label: "G" },
+                  { value: "7", label: "F" },
+                  { value: "5", label: "E" },
+                  { value: "4", label: "D" },
+                  { value: "3", label: "C" },
+                ]}
+                onChange={(v) => patch((s) => ((s.dlss.preset = parseInt(v, 10)), s))}
+              />
+            </Field>
+          )}
+          <Field label="Generic NGX App ID" hint="Fixes preset overrides in games where they do not apply">
+            <Toggle
+              on={settings.dlss.useGenericAppid}
+              onChange={(v) => patch((s) => ((s.dlss.useGenericAppid = v), s))}
+            />
+          </Field>
+        </div>
+      )}
+
       {showFg && (
         <div className="tile p-4">
           <SectionLabel>Frame Generation</SectionLabel>

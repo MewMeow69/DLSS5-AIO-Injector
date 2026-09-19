@@ -1,6 +1,16 @@
-# DLSS5 AIO Injector — v0.1.1-alpha
+# DLSS5 AIO Injector — v0.1.2-alpha
 
-Second alpha. One click turns a normal game install into a Neural Rendering + Frame Generation setup.
+Third alpha. One click turns a normal game install into a Neural Rendering + Frame Generation setup.
+
+## New in 0.1.2
+
+- **Settings page** — default NR preset, "leave NR disabled after install", pre-release channel, component update checks
+  on start, optional GitHub token (removes API rate-limit warnings), storage breakdown with a download-cache clearer,
+  manually added game folders, app update check and a data reset.
+- **DLSS preset control** per game — force a DLSS render preset (D–K) for every quality mode, plus the generic NGX app-id
+  fix for games where overrides do not apply.
+- **App update banner** — the start-up check now looks at this repository's releases and offers the new version.
+- Stale extraction folders are cleaned up automatically; installed games are never touched by any of the settings.
 
 ## New in 0.1.1
 

@@ -1,3 +1,4 @@
+mod appsettings;
 mod artifacts;
 mod detect;
 mod download;
@@ -86,22 +87,23 @@ async fn steam_search_appid(term: String) -> Option<String> {
 #[tauri::command]
 async fn add_manual_root(path: String) -> Vec<Game> {
     blocking(move || {
-        let file = paths::settings_path();
-        let mut j: serde_json::Value = std::fs::read_to_string(&file)
-            .ok()
-            .and_then(|t| serde_json::from_str(&t).ok())
-            .unwrap_or_else(|| serde_json::json!({}));
-        let roots = j
-            .as_object_mut()
-            .map(|o| o.entry("manualRoots").or_insert_with(|| serde_json::json!([])));
-        if let Some(arr) = roots.and_then(|v| v.as_array_mut()) {
-            if !arr.iter().any(|v| v.as_str().map(|s| s.eq_ignore_ascii_case(&path)).unwrap_or(false)) {
-                arr.push(serde_json::Value::String(path));
-            }
+        let mut s = appsettings::load();
+        if !s.manual_roots.iter().any(|r| r.eq_ignore_ascii_case(&path)) {
+            s.manual_roots.push(path);
+            let _ = appsettings::save(&s);
         }
-        if let Ok(text) = serde_json::to_string_pretty(&j) {
-            let _ = std::fs::write(&file, text);
-        }
+        library::scan_all()
+    })
+    .await
+    .unwrap_or_default()
+}
+
+#[tauri::command]
+async fn remove_manual_root(path: String) -> Vec<Game> {
+    blocking(move || {
+        let mut s = appsettings::load();
+        s.manual_roots.retain(|r| !r.eq_ignore_ascii_case(&path));
+        let _ = appsettings::save(&s);
         library::scan_all()
     })
     .await
@@ -111,6 +113,7 @@ async fn add_manual_root(path: String) -> Vec<Game> {
 #[tauri::command]
 async fn list_artifacts() -> Vec<Artifact> {
     blocking(|| {
+        appsettings::tidy_staging(3 * 24 * 3600);
         artifacts::auto_import_once();
         artifacts::list()
     })
@@ -155,6 +158,53 @@ async fn list_components(refresh: bool, allow_beta: bool) -> Vec<Component> {
 #[tauri::command]
 async fn components_checked_at() -> i64 {
     blocking(registry::last_check).await.unwrap_or(0)
+}
+
+#[tauri::command]
+async fn get_app_settings() -> appsettings::AppSettings {
+    blocking(appsettings::load).await.unwrap_or_default()
+}
+
+#[tauri::command]
+async fn set_app_settings(settings: appsettings::AppSettings) -> Result<(), String> {
+    blocking(move || appsettings::save(&settings))
+        .await
+        .unwrap_or_else(|e| Err(e))
+}
+
+#[tauri::command]
+async fn app_paths() -> appsettings::AppPaths {
+    blocking(appsettings::paths_info)
+        .await
+        .unwrap_or_else(|_| appsettings::paths_info())
+}
+
+#[tauri::command]
+async fn cache_stats() -> appsettings::CacheStats {
+    blocking(appsettings::cache_stats)
+        .await
+        .unwrap_or_else(|_| appsettings::cache_stats())
+}
+
+#[tauri::command]
+async fn clear_downloads() -> Result<(usize, u64), String> {
+    blocking(appsettings::clear_downloads)
+        .await
+        .unwrap_or_else(|e| Err(e))
+}
+
+#[tauri::command]
+async fn reset_app_data() -> Result<(), String> {
+    blocking(appsettings::reset_app_data)
+        .await
+        .unwrap_or_else(|e| Err(e))
+}
+
+#[tauri::command]
+async fn check_app_update() -> appsettings::AppUpdate {
+    blocking(appsettings::check_app_update)
+        .await
+        .unwrap_or_else(|_| appsettings::check_app_update())
 }
 
 #[tauri::command]
@@ -316,12 +366,20 @@ pub fn run() {
             system_info,
             steam_search_appid,
             add_manual_root,
+            remove_manual_root,
             list_artifacts,
             set_preferred_artifact,
             preferred_artifacts,
             import_artifacts,
             list_components,
             components_checked_at,
+            get_app_settings,
+            set_app_settings,
+            app_paths,
+            cache_stats,
+            clear_downloads,
+            reset_app_data,
+            check_app_update,
             download_component,
             plan_install,
             install_game,

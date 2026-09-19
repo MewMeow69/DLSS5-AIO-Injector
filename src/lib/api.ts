@@ -1,6 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 import type {
+  AppPaths,
+  AppSettings,
+  AppUpdate,
   Artifact,
+  CacheStats,
   Component,
   Detection,
   Game,
@@ -40,6 +44,15 @@ export const listComponents = (refresh: boolean, allowBeta: boolean) =>
 export const componentsCheckedAt = () => invoke<number>("components_checked_at");
 
 export const runInstallerFile = (path: string) => invoke<void>("run_installer_file", { path });
+
+export const getAppSettings = () => invoke<AppSettings>("get_app_settings");
+export const setAppSettings = (settings: AppSettings) => invoke<void>("set_app_settings", { settings });
+export const appPaths = () => invoke<AppPaths>("app_paths");
+export const cacheStats = () => invoke<CacheStats>("cache_stats");
+export const clearDownloads = () => invoke<[number, number]>("clear_downloads");
+export const resetAppData = () => invoke<void>("reset_app_data");
+export const checkAppUpdate = () => invoke<AppUpdate>("check_app_update");
+export const removeManualRoot = (path: string) => invoke<Game[]>("remove_manual_root", { path });
 
 export const readGameSettings = (installDir: string) =>
   invoke<GameSettings>("read_game_settings", { installDir });

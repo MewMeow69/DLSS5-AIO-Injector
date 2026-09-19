@@ -117,6 +117,47 @@ export interface ReShadeSettings {
   techniques: Record<string, boolean>;
 }
 
+export interface DlssSettings {
+  presetOverride: boolean;
+  preset: number;
+  useGenericAppid: boolean;
+}
+
+export interface AppSettings {
+  manualRoots: string[];
+  githubToken: string;
+  checkUpdatesOnStart: boolean;
+  keepNrDisabled: boolean;
+  defaultPreset: string;
+  allowBeta: boolean;
+}
+
+export interface AppPaths {
+  appDir: string;
+  downloadsDir: string;
+  cacheDir: string;
+  stagingDir: string;
+  settingsFile: string;
+  version: string;
+}
+
+export interface CacheStats {
+  downloadsBytes: number;
+  stagingBytes: number;
+  cacheBytes: number;
+  artifacts: number;
+  imported: number;
+  downloaded: number;
+}
+
+export interface AppUpdate {
+  current: string;
+  latest: string;
+  url: string;
+  newer: boolean;
+  error: string | null;
+}
+
 export interface GameSettings {
   provider: string;
   optiscalerInstalled: boolean;
@@ -125,6 +166,7 @@ export interface GameSettings {
   nr: NrSettings;
   fg: FgSettings;
   reshade: ReShadeSettings;
+  dlss: DlssSettings;
   managed: boolean;
 }
 

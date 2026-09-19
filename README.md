@@ -84,6 +84,16 @@ XeLL). It presents in Borderless Fullscreen only and is not supported on Vulkan.
 
 Roll back any time: the game page keeps your pre-install files in `_NeuroDeck/backups` and **Roll Back** restores them.
 
+## Settings
+
+- **Per game** — the game page has a **Settings** tab: NR (enable, before-upscale, model resolution, passes, detail and
+  colour strength, HDR transfer, finished-picture), frame generation (input/output/replacement, generated frames,
+  HUDfix, depth/MV copies), DLSS preset override and the ReShade feed (motion-vector provider, validation, mask
+  strength, technique toggles). Every write is journalled, so **Roll Back** reverts settings too.
+- **App-wide** — the **Settings** page holds the default NR preset, the pre-release channel, start-up update checks, an
+  optional GitHub token, the storage breakdown with a one-click download-cache clear, your manually added game folders,
+  an app update check and a data reset.
+
 ## Components & updates
 
 Every component (OptiScaler builds, feeder, ReShade, RenoDX, runtimes, XeSS SDK, OptiPatcher, sm86) has its own card:

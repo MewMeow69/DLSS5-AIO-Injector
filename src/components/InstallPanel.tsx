@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { runInstallerFile } from "../lib/api";
+import { runInstallerFile, getAppSettings } from "../lib/api";
 import {
   downloadComponent,
   gameState,
@@ -134,6 +134,13 @@ export function InstallPanel({
 
   useEffect(() => {
     void listArtifacts().then(setArtifacts).catch(() => {});
+    void getAppSettings()
+      .then((s) => {
+        if (s.defaultPreset && s.defaultPreset !== "auto") {
+          setOptions((o) => ({ ...o, preset: s.defaultPreset }));
+        }
+      })
+      .catch(() => {});
     const un = listen<DownloadProgress>("download:progress", (e) => {
       setDownload(e.payload);
       if (e.payload.done) {

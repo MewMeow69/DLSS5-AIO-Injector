@@ -41,6 +41,14 @@ pub struct FgSettings {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
+pub struct DlssSettings {
+    pub preset_override: bool,
+    pub preset: u32,
+    pub use_generic_appid: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct ReShadeSettings {
     pub installed: bool,
     pub mv_provider: u32,
@@ -61,6 +69,7 @@ pub struct GameSettings {
     pub nr: NrSettings,
     pub fg: FgSettings,
     pub reshade: ReShadeSettings,
+    pub dlss: DlssSettings,
     pub managed: bool,
 }
 
@@ -211,6 +220,15 @@ pub fn read(dir: &Path, detection: Option<&Detection>) -> GameSettings {
         };
     }
 
+    if ini.is_file() {
+        let lines = inifile::read(&ini);
+        out.dlss = DlssSettings {
+            preset_override: inifile::get_bool(&lines, "DLSS", "RenderPresetOverride").unwrap_or(false),
+            preset: inifile::get_u32(&lines, "DLSS", "RenderPresetForAll").unwrap_or(0),
+            use_generic_appid: inifile::get_bool(&lines, "DLSS", "UseGenericAppIdWithDlss").unwrap_or(false),
+        };
+    }
+
     let (preset, has_preset) = read_preset(dir);
     out.reshade = ReShadeSettings {
         installed: has_preset || out.reshade_installed,
@@ -271,6 +289,9 @@ pub fn write(dir: &Path, patch: &GameSettings) -> Result<Vec<String>, String> {
         inifile::set(&mut lines, "OptiFG", "HUDFix", bool_str(patch.fg.hudfix));
         inifile::set(&mut lines, "OptiFG", "MakeDepthCopy", bool_str(patch.fg.make_depth_copy));
         inifile::set(&mut lines, "OptiFG", "MakeMVCopy", bool_str(patch.fg.make_mv_copy));
+        inifile::set(&mut lines, "DLSS", "RenderPresetOverride", bool_str(patch.dlss.preset_override));
+        inifile::set(&mut lines, "DLSS", "RenderPresetForAll", &patch.dlss.preset.min(15).to_string());
+        inifile::set(&mut lines, "DLSS", "UseGenericAppIdWithDlss", bool_str(patch.dlss.use_generic_appid));
         install::write_journaled(dir, "OptiScaler.ini", &(lines.join("\r\n") + "\r\n"))?;
         written.push("OptiScaler.ini".into());
     }
@@ -337,6 +358,8 @@ mod tests {
         s.nr.passes = 2;
         s.fg.output = "xefg".into();
         s.reshade.mv_provider = 4;
+        s.dlss.preset_override = true;
+        s.dlss.preset = 7;
         s.reshade.techniques.insert("Lumenite_QuantMotion".into(), true);
         s.reshade.techniques.insert("Lumenite_Kernel".into(), false);
         write(&base, &s).unwrap();
@@ -346,6 +369,8 @@ mod tests {
         assert_eq!(after.nr.passes, 2);
         assert_eq!(after.fg.output, "xefg");
         assert_eq!(after.reshade.mv_provider, 4);
+        assert!(after.dlss.preset_override);
+        assert_eq!(after.dlss.preset, 7);
         assert_eq!(after.reshade.techniques.get("Lumenite_QuantMotion"), Some(&true));
         assert_eq!(after.reshade.techniques.get("Lumenite_Kernel"), Some(&false));
         let preset = std::fs::read_to_string(base.join("ReShadePreset.ini")).unwrap();

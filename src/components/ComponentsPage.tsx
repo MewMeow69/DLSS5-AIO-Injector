@@ -14,6 +14,7 @@ import {
 import type { Artifact, Component, DownloadProgress } from "../lib/types";
 import { Bolt, Check, Download, FolderPlus, Pin, Refresh } from "./icons";
 import { artifactKind, artifactsFor } from "../lib/kinds";
+import { getAllowBeta, setAllowBeta as persistBeta } from "../lib/prefs";
 import { Pill, Popup, Progress, SectionLabel } from "./ui";
 
 function fmtSize(n: number) {
@@ -68,7 +69,7 @@ export function ComponentsPage({ onArtifactsChanged }: { onArtifactsChanged: (a:
   const [components, setComponents] = useState<Component[]>([]);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [preferred, setPreferred] = useState<Record<string, string>>({});
-  const [allowBeta, setAllowBeta] = useState(() => localStorage.getItem("neurodeck.beta") === "1");
+  const [allowBeta, setAllowBeta] = useState(getAllowBeta);
   const [busy, setBusy] = useState(true);
   const [status, setStatus] = useState("");
   const [download, setDownload] = useState<DownloadProgress | null>(null);
@@ -175,7 +176,7 @@ export function ComponentsPage({ onArtifactsChanged }: { onArtifactsChanged: (a:
   const toggleBeta = () => {
     const next = !allowBeta;
     setAllowBeta(next);
-    localStorage.setItem("neurodeck.beta", next ? "1" : "0");
+    persistBeta(next);
   };
 
   const visible = useMemo(() => {

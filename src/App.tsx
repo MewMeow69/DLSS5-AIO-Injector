@@ -2,15 +2,26 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import "./App.css";
 import { ComponentsPage } from "./components/ComponentsPage";
+import { SettingsPage } from "./components/SettingsPage";
 import { GameCard } from "./components/GameCard";
 import { GameDetail } from "./components/GameDetail";
 import { FolderPlus, Refresh, Upload } from "./components/icons";
 import { Sidebar, type View } from "./components/Sidebar";
 import { TitleBar } from "./components/TitleBar";
-import { addManualRoot, detectGame, listArtifacts, listComponents, scanLibrary, systemInfo } from "./lib/api";
+import {
+  addManualRoot,
+  checkAppUpdate,
+  detectGame,
+  getAppSettings,
+  listArtifacts,
+  listComponents,
+  scanLibrary,
+  systemInfo,
+} from "./lib/api";
 import { cachedArtId, resolveArtId } from "./lib/art";
 import { loadCached, saveCached } from "./lib/detectCache";
-import type { Artifact, Component, Detection, Game, GpuInfo } from "./lib/types";
+import type { AppUpdate, Artifact, Component, Detection, Game, GpuInfo } from "./lib/types";
+import { getAllowBeta } from "./lib/prefs";
 import { updatesAvailable } from "./lib/updates";
 
 type Filter = "all" | "modded" | "nr-ready" | "no-upscaler" | "attention";
@@ -48,15 +59,20 @@ export default function App() {
   const [loadingLabel, setLoadingLabel] = useState("Scanning Game Libraries…");
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [components, setComponents] = useState<Component[]>([]);
+  const [appUpdate, setAppUpdate] = useState<AppUpdate | null>(null);
   const detectionsRef = useRef(detections);
   detectionsRef.current = detections;
 
-  const allowBeta = localStorage.getItem("neurodeck.beta") === "1";
+  const allowBeta = getAllowBeta();
   const updates = useMemo(() => updatesAvailable(components, artifacts, allowBeta), [components, artifacts, allowBeta]);
 
   useEffect(() => {
     listArtifacts().then(setArtifacts).catch(() => {});
     listComponents(false, allowBeta).then(setComponents).catch(() => {});
+    void getAppSettings()
+      .then((s) => (s.checkUpdatesOnStart ? checkAppUpdate() : null))
+      .then((u) => u && setAppUpdate(u))
+      .catch(() => {});
   }, [allowBeta]);
 
   const refresh = useCallback(async (force = false) => {
@@ -178,6 +194,13 @@ export default function App() {
         <main className="flex min-w-0 flex-1 flex-col">
         {view === "components" ? (
           <ComponentsPage onArtifactsChanged={onArtifactsChanged} />
+        ) : view === "settings" ? (
+          <SettingsPage
+            onGamesChanged={setGames}
+            onArtifactsChanged={() => {
+              listArtifacts().then(setArtifacts).catch(() => {});
+            }}
+          />
         ) : (
           <>
             <header className="shrink-0 border-b border-deck-line px-6 pb-4 pt-5">
@@ -234,6 +257,27 @@ export default function App() {
                   </div>
                 )}
               </div>
+
+              {appUpdate?.newer && (
+                <div
+                  className="pop-in mt-3.5 flex items-center justify-between gap-3 rounded-2xl px-3.5 py-2.5"
+                  style={{
+                    background: "rgba(107,124,255,0.12)",
+                    boxShadow: "inset 0 0 0 1px rgba(107,124,255,0.28)",
+                  }}
+                >
+                  <div className="min-w-0 text-[12px]">
+                    <span className="font-bold text-deck-accent">Version {appUpdate.latest} is available</span>
+                    <span className="ml-2 text-deck-muted">you are on {appUpdate.current}</span>
+                  </div>
+                  <button
+                    onClick={() => setView("settings")}
+                    className="btn btn-primary btn-sm shrink-0"
+                  >
+                    Open Settings
+                  </button>
+                </div>
+              )}
 
               {updates.count > 0 && (
                 <div

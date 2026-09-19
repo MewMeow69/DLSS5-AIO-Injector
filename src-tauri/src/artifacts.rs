@@ -296,8 +296,20 @@ pub fn preferred() -> std::collections::BTreeMap<String, String> {
         .unwrap_or_default()
 }
 
-pub fn set_preferred(kind: &str, path: Option<&str>) {
-    let mut map = preferred();
+/// Drops registrations whose files live under `dir` (used when the download
+/// cache is cleared). Imported payload files are untouched.
+pub fn unregister_under(dir: &Path) -> usize {
+    let prefix = dir.to_string_lossy().to_lowercase();
+    let mut items = list();
+    let before = items.len();
+    items.retain(|a| !a.path.to_lowercase().starts_with(&prefix));
+    if items.len() != before {
+        save(&items);
+    }
+    before - items.len()
+}
+
+pub fn set_preferred(kind: &str, path: Option<&str>) {    let mut map = preferred();
     match path {
         Some(p) => {
             map.insert(kind.to_string(), p.to_string());
