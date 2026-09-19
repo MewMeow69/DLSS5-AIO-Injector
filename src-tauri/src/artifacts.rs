@@ -45,6 +45,9 @@ pub fn fork_kind_for_name(name: &str) -> Option<&'static str> {
     if lower.starts_with("optiscaler-nr-") {
         return Some("optiscaler-wilsjo2");
     }
+    if lower.contains("optiscalermfg") || lower.contains("optiscaler-mfg") {
+        return Some("optiscaler-mfg");
+    }
     if lower.contains("-v0.1.") || lower.contains("auto-exposure")
     {
         return Some("optiscaler-janblade");
@@ -77,6 +80,18 @@ pub fn fork_kind_for_file(path: &Path) -> Option<String> {
 /// fork so each fork lists its own versions. Cheap and idempotent.
 fn migrate_forks(items: &mut [Artifact]) -> bool {
     let mut changed = false;
+    // the data folder was renamed: repoint recorded paths that moved with it
+    let legacy = format!("\\{}\\", crate::paths::LEGACY_FOLDER);
+    let current = format!("\\{}\\", crate::paths::APP_FOLDER);
+    for a in items.iter_mut() {
+        if a.path.contains(&legacy) {
+            let fixed = a.path.replace(&legacy, &current);
+            if Path::new(&fixed).is_file() {
+                a.path = fixed;
+                changed = true;
+            }
+        }
+    }
     for a in items.iter_mut() {
         if a.kind != "optiscaler" {
             continue;
@@ -322,6 +337,9 @@ fn kind_for_dll(name: &str, sha: &str, size: u64) -> Option<(&'static str, &'sta
     if n == "dlss-enabler-headless.dll" {
         return Some(("dlss-enabler", "headless"));
     }
+    if n == "fakenvapi.dll" {
+        return Some(("fakenvapi", "local"));
+    }
     None
 }
 
@@ -420,6 +438,10 @@ pub fn import_dir(root: &Path) -> Vec<Artifact> {
                     .collect();
                 let ver = ver.trim_end_matches('.').to_string();
                 if let Some(a) = reg("reshade", if ver.is_empty() { "local" } else { &ver }, None) {
+                    added.push(a);
+                }
+            } else if lower.starts_with("fakenvapi") {
+                if let Some(a) = reg("fakenvapi", &version::find_in_text(&name).unwrap_or_else(|| "local".into()), None) {
                     added.push(a);
                 }
             } else if lower.starts_with("dlss-enabler-setup") && lower.ends_with(".exe") {

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 pub const APP_FOLDER: &str = "DLSS5-AIO-Injector";
-const LEGACY_FOLDER: &str = "NeuroDeck";
+pub const LEGACY_FOLDER: &str = "NeuroDeck";
 
 /// One-time move of the old data folder so caches and the artifact registry
 /// survive the rename.

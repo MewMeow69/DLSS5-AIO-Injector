@@ -230,7 +230,7 @@ export function InstallPanel({
   const hasEnablerInstaller = enablerInstallerPath !== null;
   const buildOptions = useMemo(() => {
     const opts = [{ value: "", label: "Auto — newest build across forks" }];
-    const pools = ["optiscaler-wilsjo2", "optiscaler-janblade", "optiscaler-nightly", "optiscaler"];
+    const pools = ["optiscaler-wilsjo2", "optiscaler-janblade", "optiscaler-mfg", "optiscaler-nightly", "optiscaler"];
     for (const kind of pools) {
       for (const a of artifacts.filter((x) => x.kind === kind)) {
         const parts = [FORK_LABEL[kind] ?? kind, a.version];
@@ -309,7 +309,7 @@ export function InstallPanel({
 
       {options.nrProvider === "optiscaler" && (
         <div className="mt-2">
-          <Field label="Frame-Generation Output" hint="FSR FG runs on any GPU; XeFG needs Borderless Fullscreen">
+          <Field label="Frame-Generation Output" hint="FSR FG and XeFG run on any GPU (XeFG: Borderless Fullscreen, XeSS 3.x libs + fakenvapi are installed automatically)">
             <Select
               value={options.fgOutput}
               options={[
@@ -336,7 +336,7 @@ export function InstallPanel({
             />
           </Field>
           {options.fgOutput === "xefg" && (
-            <Field label="Use XeSS 3.x libraries" hint="libxess_fg + libxell from the Intel SDK: real XeFG on non-Intel GPUs">
+            <Field label="Use XeSS 3.x libraries" hint="libxess_fg + libxell from the Intel SDK: real XeFG on RTX / AMD too">
               <Toggle on={options.xessLibs} onChange={(v) => set({ xessLibs: v })} />
             </Field>
           )}

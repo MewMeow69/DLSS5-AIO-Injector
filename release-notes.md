@@ -1,6 +1,17 @@
-# DLSS5 AIO Injector — v0.1.0-alpha
+# DLSS5 AIO Injector — v0.1.1-alpha
 
-First alpha release. One click turns a normal game install into a Neural Rendering + Frame Generation setup.
+Second alpha. One click turns a normal game install into a Neural Rendering + Frame Generation setup.
+
+## New in 0.1.1
+
+- **XeFG on RTX and AMD** — the app now installs `libxess_fg.dll` + `libxell.dll` from the Intel XeSS 3.x SDK and
+  `fakenvapi.dll` (Reflex → XeLL) automatically when you pick XeFG output. Present it in Borderless Fullscreen.
+- **MFG unlock fork** — [evairx/OptiScaler-MFG](https://github.com/evairx/OptiScaler-MFG) is now a selectable build:
+  NVIDIA Multi Frame Generation on RTX 20/30/40 (4X Ampere/Turing, 6X Ada) with XeFG kept as an explicit output.
+- **Smarter proxy choice** — `dxgi.dll` is used for OptiScaler whenever the name is free; ReShade only takes it when
+  the feeder is actually installed.
+- **ReShade only when it is needed** — a game that already has DLSS/FSR/XeSS gets no ReShade and no feeder unless you
+  ask for them (or pick the RenoDX path, which requires them).
 
 ## Highlights
 

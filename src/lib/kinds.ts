@@ -25,5 +25,6 @@ export const FORK_LABEL: Record<string, string> = {
   "optiscaler-wilsjo2": "wilsjo2 fork",
   "optiscaler-janblade": "janblade fork",
   "optiscaler-nightly": "upstream nightly",
+  "optiscaler-mfg": "MFG unlock fork",
   optiscaler: "imported",
 };

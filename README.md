@@ -34,9 +34,18 @@ sensitive keys. This app does all of it, per game, and keeps a rollback snapshot
 - **NVIDIA runtimes** — `nvngx_dlss.dll`, `nvngx_dlssnr.dll` (original for RTX 50, ShortFuse cross-generation build for
   RTX 20/30/40), `nvngx_dlssd.dll` (Ray Reconstruction), `nvngx_dlssg.dll`
 - **DLSS 5 Feeder + ReShade** — add-on build, DLSS5_Feed shader, LumeniteFX motion-vector provider, Vulkan layer
-- **Frame generation** — DLSSG via Streamline, FSR FG, **XeFG on any GPU** (Intel XeSS 3.x libraries), Artur's
-  DLSS Enabler for FSR MFG, **DLSSG on RTX 20/30** via the sm86 proxy
+- **Frame generation** — DLSSG via Streamline, FSR FG, **XeFG on RTX / AMD / Intel** (Intel XeSS 3.x libraries plus
+  `fakenvapi` for Reflex→XeLL pacing), Artur's DLSS Enabler for FSR MFG, **DLSSG on RTX 20/30** via the sm86 proxy
+- **MFG unlock fork** — [evairx/OptiScaler-MFG](https://github.com/evairx/OptiScaler-MFG), an unofficial OptiScaler
+  fork that unlocks NVIDIA Multi Frame Generation on RTX 20/30/40 (up to 4X on Ampere/Turing, 6X on Ada) and keeps
+  XeFG as an explicit output
 - **OptiPatcher** — unlocks DLSS/DLSSG inputs without spoofing in supported games
+
+### Proxy choice
+
+OptiScaler is installed as `dxgi.dll` whenever that name is free — the most compatible proxy for DX11/DX12 games.
+When ReShade is installed (feeder path) it takes `dxgi.dll` and OptiScaler moves to `winmm.dll`; the app allocates
+names across all mods so nothing collides.
 
 ## Hardware support
 
@@ -44,8 +53,11 @@ sensitive keys. This app does all of it, per game, and keeps a rollback snapshot
 | --- | --- | --- |
 | RTX 50 (Blackwell) | NVIDIA-signed 310.8 runtime | native DLSSG / MFG |
 | RTX 40 (Ada) | ShortFuse compatibility runtime | native DLSSG + optional MFG unlock build |
-| RTX 30 / 20 (Ampere / Turing) | ShortFuse compatibility runtime | DLSSG via the sm86 proxy, FSR FG, XeFG |
+| RTX 30 / 20 (Ampere / Turing) | ShortFuse compatibility runtime | DLSSG via the sm86 proxy, MFG unlock (4X), FSR FG, XeFG |
 | AMD / Intel | not possible (NR needs NVIDIA NGX) | FSR FG, XeFG, OptiScaler upscaler swap |
+
+XeFG runs on **any** GPU with the XeSS 3.x libraries (the app installs them and adds `fakenvapi.dll` so Reflex becomes
+XeLL). It presents in Borderless Fullscreen only and is not supported on Vulkan.
 
 ## Requirements
 
@@ -110,6 +122,9 @@ each piece is downloaded from its own source at install time.
   supplies motion vectors and depth, plus its installer script.
 - **[ReShade](https://reshade.me)** (crosire, BSD-3-Clause) — the add-on host and Vulkan layer.
 - **[LumeniteFX](https://github.com/umar-afzaal/LumeniteFX)** (umar-afzaal, MIT) — motion-vector provider.
+- **[OptiScaler-MFG](https://github.com/evairx/OptiScaler-MFG)** (evairx, unofficial fork) — the NVIDIA MFG unlock for
+  RTX 20/30/40 that keeps XeFG as an explicit output.
+- **[fakenvapi](https://github.com/optiscaler/fakenvapi)** (optiscaler) — Reflex hooking that injects XeLL for XeFG.
 - **[OptiPatcher](https://github.com/optiscaler/OptiPatcher)** (optiscaler) — DLSS/DLSSG input unlocking.
 - **[dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86)** (sdli1995, GPL-3.0) — frame generation on RTX 20/30.
 - **[DLSS Enabler](https://github.com/artur-graniszewski/DLSS-Enabler)** (Artur Graniszewski) — FSR frame generation /

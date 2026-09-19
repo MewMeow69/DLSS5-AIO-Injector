@@ -379,11 +379,14 @@ fn reserved_proxies(dir: &Path, opts: &InstallOptions, has_opti: Option<&str>) -
     used
 }
 
+/// Proxy preference: dxgi first when nothing else claims it (the most
+/// compatible name for DX11/DX12 games), then the fallbacks. ReShade takes
+/// dxgi when the feeder is installed, which pushes OptiScaler to winmm.
 fn optiscaler_proxy(dir: &Path, used: &BTreeMap<String, String>) -> String {
     if let Some((name, _)) = used.iter().find(|(_, who)| who.as_str() == "optiscaler") {
         return name.clone();
     }
-    for cand in ["winmm.dll", "dbghelp.dll", "winhttp.dll", "wininet.dll", "d3d12.dll", "dxgi.dll"] {
+    for cand in ["dxgi.dll", "winmm.dll", "dbghelp.dll", "winhttp.dll", "wininet.dll", "d3d12.dll", "version.dll"] {
         if !used.contains_key(cand) && !dir.join(cand).is_file() {
             return cand.to_string();
         }
@@ -847,7 +850,7 @@ pub fn run(progress: Progress, detection: &Detection, opts: &InstallOptions) -> 
     if opts.uses_optiscaler() && opts.fg_output == "xefg" {
         let mut sources: Vec<(String, PathBuf)> = Vec::new();
         if opts.xess_libs {
-            if let Some(sdk) = artifacts::best("xess-sdk", None) {
+            if let Some(sdk) = ensure("xess-sdk", None, "xess-sdk", "Intel XeSS SDK") {
                 emit("xefg", "XeFG libraries", &format!("XeSS SDK {}", sdk.version), false, None);
                 for name in ["libxess_fg.dll", "libxell.dll"] {
                     if let Ok(p) = materialize(&sdk, name, "xess") {
@@ -880,6 +883,27 @@ pub fn run(progress: Progress, detection: &Detection, opts: &InstallOptions) -> 
             },
         });
         emit("xefg", "XeFG libraries", &format!("{} files", sources.len()), true, None);
+
+        // XeLL pacing for XeFG: fakenvapi hooks Reflex and injects XeLL
+        if let Some(fnapi) = ensure("fakenvapi", None, "fakenvapi", "Fakenvapi (XeLL)") {
+            let mut got = 0;
+            for name in ["fakenvapi.dll", "fakenvapi.ini"] {
+                if let Ok(p) = materialize(&fnapi, name, "fakenvapi") {
+                    writer.place(&p, name)?;
+                    placed.push(name.to_string());
+                    got += 1;
+                }
+            }
+            if got > 0 {
+                components.push(ComponentRecord {
+                    kind: "fakenvapi".into(),
+                    version: fnapi.version.clone(),
+                });
+                emit("xefg", "XeLL", "fakenvapi.dll placed (Reflex → XeLL)", true, None);
+            }
+        } else {
+            warnings.push("XeFG works without XeLL, but Reflex→XeLL pacing needs fakenvapi.dll".into());
+        }
     }
 
     // 6c. DLSS Enabler (Artur) for FSR FG / MFG replacement
@@ -1373,6 +1397,52 @@ mod tests {
             }
             let _ = std::fs::write(&store, serde_json::to_string_pretty(&cur).unwrap());
         }
+        rollback(&game).expect("rollback");
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    #[ignore]
+    fn live_xefg_on_nvidia_installs_libs_and_fakenvapi() {
+        if artifacts::list().is_empty() {
+            artifacts::auto_import();
+        }
+        let base = std::env::temp_dir().join("neurodeck-xefg-test");
+        let _ = std::fs::remove_dir_all(&base);
+        let game = base.join("game");
+        std::fs::create_dir_all(&game).unwrap();
+        std::fs::write(game.join("Game.exe"), vec![0u8; 1024]).unwrap();
+        let mut det = Detection {
+            exe: Some(game.join("Game.exe").to_string_lossy().to_string()),
+            exe_dir: Some(game.to_string_lossy().to_string()),
+            arch: Some("x64".into()),
+            ..Default::default()
+        };
+        det.upscalers = vec!["dlss".into()];
+
+        let opts = InstallOptions {
+            nr_provider: "optiscaler".into(),
+            install_feeder: false, // game has an upscaler → ReShade stays out
+            fg_output: "xefg".into(),
+            xess_libs: true,
+            hudfix: true,
+            ..Default::default()
+        };
+        let log = |stage: &str, title: &str, detail: &str, done: bool, _e: Option<String>| {
+            if done {
+                println!("[{}] {}: {}", stage, title, detail);
+            }
+        };
+        let report = run(&log, &det, &opts).expect("xefg install runs");
+        println!("placed: {:?}", report.placed);
+        println!("warnings: {:?}", report.warnings);
+        assert!(game.join("dxgi.dll").is_file(), "no ReShade → OptiScaler takes dxgi.dll");
+        assert!(game.join("OptiScaler\\libxess_fg.dll").is_file(), "XeFG runtime from the XeSS SDK");
+        assert!(game.join("OptiScaler\\libxell.dll").is_file(), "XeLL runtime");
+        assert!(game.join("fakenvapi.dll").is_file(), "fakenvapi for Reflex→XeLL");
+        let ini = std::fs::read_to_string(game.join("OptiScaler.ini")).unwrap();
+        assert!(ini.contains("FGOutput = xefg"), "ini: {}", ini);
+        assert!(!game.join("ReShade.ini").is_file(), "ReShade must not be installed");
         rollback(&game).expect("rollback");
         let _ = std::fs::remove_dir_all(&base);
     }

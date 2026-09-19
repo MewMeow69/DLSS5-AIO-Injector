@@ -14,6 +14,7 @@ pub fn component_kind(id: &str) -> &str {
         "renodx-rhi" => "renodx",
         // the enabler ships an Inno Setup installer, not a bare DLL
         "dlss-enabler" => "dlss-enabler-installer",
+        "fakenvapi" => "fakenvapi",
         other => other,
     }
 }
@@ -21,6 +22,8 @@ pub fn component_kind(id: &str) -> &str {
 fn asset_needle(id: &str, variant: Option<&str>) -> (&'static str, &'static str) {
     match id {
         "optiscaler-nightly" => (".7z", ""),
+        "optiscaler-mfg" => (".7z", ""),
+        "fakenvapi" => (".7z", ""),
         "xess-sdk" => ("XeSS_SDK_", ""),
         "dlss-enabler" => (".exe", ""),
         "renodx-rhi" => ("renodx-dlss5", ""),
