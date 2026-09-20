@@ -1,4 +1,4 @@
-﻿use crate::model::{Detection, ModState};
+use crate::model::{Detection, ModState};
 use crate::pe;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -68,6 +68,45 @@ pub fn walk_files(root: &Path, max_depth: u32, cap: usize) -> Vec<PathBuf> {
     out
 }
 
+fn is_x64(path: &Path) -> bool {
+    pe::pe_read(path).map(|p| p.is_x64()).unwrap_or(false)
+}
+
+/// Biggest 64-bit exe under one of the usual binary subfolders, shallow scan.
+/// The generic walk caps at a few thousand files, which a big game never gets
+/// past, so Bin64\x64 has to be looked up by name.
+fn x64_subfolder_exe(dir: &Path) -> Option<(u64, PathBuf)> {
+    let mut best: Option<(u64, PathBuf)> = None;
+    for rel in ["Bin64", "x64", "Win64", "binaries\\win64", "bin\\x64"] {
+        let start = dir.join(rel);
+        if !start.is_dir() {
+            continue;
+        }
+        let mut stack = vec![(start, 0u32)];
+        while let Some((d, depth)) = stack.pop() {
+            let Ok(rd) = std::fs::read_dir(&d) else { continue };
+            for e in rd.flatten() {
+                let p = e.path();
+                if p.is_dir() {
+                    if depth < 2 {
+                        stack.push((p, depth + 1));
+                    }
+                    continue;
+                }
+                let n = e.file_name().to_string_lossy().to_string();
+                if !n.to_lowercase().ends_with(".exe") || is_noise_exe(&n) || !is_x64(&p) {
+                    continue;
+                }
+                let size = e.metadata().map(|m| m.len()).unwrap_or(0);
+                if best.as_ref().map(|(s, _)| size > *s).unwrap_or(true) {
+                    best = Some((size, p));
+                }
+            }
+        }
+    }
+    best
+}
+
 /// A game exe sitting directly in this folder (not somewhere below it).
 pub fn has_direct_exe(dir: &Path) -> bool {
     let Ok(rd) = std::fs::read_dir(dir) else { return false };
@@ -131,6 +170,26 @@ pub fn find_main_exe(dir: &Path, hint: Option<&str>) -> Option<PathBuf> {
         }
     }
     let ship_pick = shipping.into_iter().max_by_key(|(s, _)| *s);
+
+    // A 32-bit launcher at the root (BeamNG.drive.exe) hides the real game in a
+    // subfolder (Bin64\BeamNG.drive.x64.exe) and makes a 64-bit game look 32-bit.
+    let root_is_x64 = best.as_ref().map(|(_, p)| is_x64(p)).unwrap_or(false);
+    if !root_is_x64 {
+        if let Some((_, p)) = x64_subfolder_exe(dir) {
+            return Some(p);
+        }
+        let root_size = best.as_ref().map(|(s, _)| *s).unwrap_or(0);
+        let tree_x64 = others
+            .iter()
+            .chain(ship_pick.iter())
+            .filter(|(_, p)| is_x64(p))
+            .max_by_key(|(s, _)| *s);
+        if let Some((size, p)) = tree_x64 {
+            if *size > root_size {
+                return Some(p.clone());
+            }
+        }
+    }
 
     if let Some((score, path)) = best {
         // Unity: the exe with a matching _Data folder is the game.
@@ -469,6 +528,28 @@ mod tests {
     }
 
     #[test]
+    fn prefers_the_real_64bit_exe_over_a_32bit_launcher() {
+        let sys = std::env::var("WINDIR").unwrap_or_else(|_| "C:\\Windows".into());
+        let x86 = Path::new(&sys).join("SysWOW64").join("notepad.exe");
+        let x64 = Path::new(&sys).join("System32").join("notepad.exe");
+        if !x86.is_file() || !x64.is_file() {
+            return;
+        }
+        let dir = std::env::temp_dir().join("neurodeck-arch-pick");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("Bin64")).unwrap();
+        std::fs::copy(&x86, dir.join("Launcher.exe")).unwrap();
+        let mut real = std::fs::read(&x64).unwrap();
+        real.extend_from_slice(&vec![0u8; 2 * 1024 * 1024]);
+        std::fs::write(dir.join("Bin64").join("Game.x64.exe"), real).unwrap();
+
+        let pick = find_main_exe(&dir, None).expect("main exe");
+        assert_eq!(pick.file_name().unwrap().to_string_lossy(), "Game.x64.exe");
+        assert!(is_x64(&pick));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
     fn finds_unity_main_exe() {
         let Some(dir) = reference_game() else { return };
         let exe = find_main_exe(&dir, None).expect("main exe");
@@ -486,4 +567,5 @@ mod tests {
         assert!(d.mods.optiscaler.is_some(), "OptiScaler proxy detected");
     }
 }
+
 
