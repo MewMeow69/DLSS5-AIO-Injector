@@ -414,73 +414,50 @@ export function InstallPanel({
         </div>
       )}
 
-      <div className="mt-2.5 flex flex-wrap gap-1.5">
-        <Chip
-          on={feederRequired ? true : options.installFeeder}
-          onClick={() => !feederRequired && set({ installFeeder: !options.installFeeder })}
-          tone={feederRequired ? "amber" : "green"}
-          title={
-            feederRequired
-              ? options.nrProvider === "optiscaler"
-                ? "Required: this game has no upscaler, so NR needs the feeder's motion vectors and depth"
-                : "Required: RenoDX runs through the ReShade feeder"
-              : "Optional: this game already hands motion vectors to its upscaler, so ReShade is not installed"
-          }
-        >
-          <Bolt />
-          {feederRequired ? "Feeder · Required" : "Feeder"}
-        </Chip>
-        {options.nrProvider === "optiscaler" && (
-          <>
-            <Chip
-              on={options.installSm86}
-              onClick={() => set({ installSm86: !options.installSm86 })}
-              title="DLSSG frame generation on RTX 20/30"
-            >
-              FG SM86
-            </Chip>
-            <Chip
-              on={options.streamline}
-              onClick={() => set({ streamline: !options.streamline })}
-              title="sl.*.dll + nvngx_dlssg for OptiScaler's DLSSG output"
-            >
-              Streamline
-            </Chip>
-            <Chip
-              on={options.optipatcher}
-              onClick={() => set({ optipatcher: !options.optipatcher })}
-              title="Unlock DLSS/DLSSG inputs without spoofing"
-            >
-              OptiPatcher
-            </Chip>
-            {(gpu?.family === "ada" || gpu?.family === "blackwell") && (
-              <Chip
-                on={options.rtx40Mfg}
-                onClick={() => set({ rtx40Mfg: !options.rtx40Mfg })}
-                tone="violet"
-                title="Use the rtx40-mfg build + Ada MFG unlock (restart required)"
-              >
-                RTX 40 MFG
-              </Chip>
+      <div className="mt-3">
+        <SectionLabel>Install options</SectionLabel>
+        <div className="tile-flush px-3.5 py-1.5">
+          <Field
+            label="ReShade + feeder"
+            hint={
+              feederRequired
+                ? options.nrProvider === "optiscaler"
+                  ? "Required here: no upscaler, so NR needs the feeder's motion vectors and depth"
+                  : "Required: RenoDX runs through the ReShade feeder"
+                : "Optional: this game already hands motion vectors to its upscaler"
+            }
+          >
+            {feederRequired ? (
+              <span className="text-[11.5px] font-semibold text-deck-amber">Required</span>
+            ) : (
+              <Toggle on={options.installFeeder} onChange={(v) => set({ installFeeder: v })} />
             )}
-            <Chip
-              on={options.force}
-              onClick={() => set({ force: !options.force })}
-              tone="amber"
-              title="Overwrite OptiScaler.ini instead of merging"
-            >
-              Force INI
-            </Chip>
-            <Chip
-              on={options.nrEnabled}
-              onClick={() => set({ nrEnabled: !options.nrEnabled })}
-              tone="amber"
-              title="Leave off and enable NR yourself in the OptiScaler overlay"
-            >
-              Enable NR Now
-            </Chip>
-          </>
-        )}
+          </Field>
+          {options.nrProvider === "optiscaler" && (
+            <>
+              <Field label="DLSSG on RTX 20/30 (sm86)" hint="version.dll + dlssg_sm86.ini">
+                <Toggle on={options.installSm86} onChange={(v) => set({ installSm86: v })} />
+              </Field>
+              <Field label="Streamline set" hint="sl.*.dll + nvngx_dlssg for the DLSSG output">
+                <Toggle on={options.streamline} onChange={(v) => set({ streamline: v })} />
+              </Field>
+              <Field label="OptiPatcher" hint="Unlock DLSS/DLSSG inputs without spoofing">
+                <Toggle on={options.optipatcher} onChange={(v) => set({ optipatcher: v })} />
+              </Field>
+              {(gpu?.family === "ada" || gpu?.family === "blackwell") && (
+                <Field label="RTX 40 MFG unlock" hint="rtx40-mfg build + Ada MFG unlock (restart required)">
+                  <Toggle on={options.rtx40Mfg} onChange={(v) => set({ rtx40Mfg: v })} />
+                </Field>
+              )}
+              <Field label="Overwrite OptiScaler.ini" hint="Off: your existing keys are merged and kept">
+                <Toggle on={options.force} onChange={(v) => set({ force: v })} />
+              </Field>
+              <Field label="Enable NR right away" hint="Off: switch Neural Rendering on yourself in the overlay (Insert)">
+                <Toggle on={options.nrEnabled} onChange={(v) => set({ nrEnabled: v })} />
+              </Field>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="mt-3.5 flex flex-wrap items-center gap-2">
@@ -488,16 +465,25 @@ export function InstallPanel({
           <Play />
           {running ? "Installing…" : installed ? "Update / Repair" : "Install"}
         </button>
-        <button onClick={() => void preview()} className="btn">
-          <List />
-          Preview Plan
-        </button>
-        <button onClick={() => void doVerify()} className="btn btn-success btn-sm" disabled={!installed} title="Check every file the install needs, plus the game logs">
+        <button
+          onClick={() => void doVerify()}
+          disabled={!installed}
+          className="btn btn-sm"
+          title="Check every file the install needs, plus the game logs"
+        >
           <CheckIcon />
           Verify Install
         </button>
-        {installed && (
-          <>
+        <button onClick={() => void preview()} className="btn btn-sm">
+          <List />
+          Preview Plan
+        </button>
+      </div>
+
+      {installed && (
+        <div className="mt-3.5 flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-3">
+          <span className="text-[10.5px] font-bold uppercase tracking-wider text-deck-muted">Maintenance</span>
+          <div className="ml-auto flex flex-wrap gap-2">
             <button
               onClick={() => void doRollback()}
               disabled={!state?.backups.length}
@@ -507,13 +493,13 @@ export function InstallPanel({
               <Undo />
               Roll Back
             </button>
-            <button onClick={() => void doUninstall()} className="btn btn-rose btn-sm">
+            <button onClick={() => void doUninstall()} className="btn btn-rose btn-sm" title="Remove everything this app installed">
               <Trash />
               Uninstall
             </button>
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
 
       {verify && (
         <div className="fade-in tile-flush mt-3 p-3">

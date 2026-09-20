@@ -203,69 +203,77 @@ body {
 }
 
 /* Toggle chip: colour → black when on, flat dark when off. */
+/* Toggle chip: same glaze as the buttons, dark tinted when on. */
 .chip {
-  --chip-top: #34343f;
-  --chip-mid: #22222b;
-  --chip-bottom: #14141a;
-  --chip-fg: #a8a8b8;
+  --chip-bg: #333a44;
+  --chip-fg: #b9bcc9;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.38rem 0.72rem;
-  border-radius: 9px;
-  font-weight: 500;
-  font-size: 11.5px;
-  letter-spacing: 0.015em;
+  gap: 0.4rem;
+  padding: 0.44rem 0.8rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.01em;
   color: var(--chip-fg);
-  background: linear-gradient(180deg, var(--chip-top) 0%, var(--chip-mid) 55%, var(--chip-bottom) 100%);
-  box-shadow: 0 2px 5px -2px rgba(0, 0, 0, 0.7);
-  transition: filter 130ms ease, color 130ms ease, box-shadow 130ms ease;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 34%, rgba(255, 255, 255, 0) 58%),
+    linear-gradient(180deg, var(--chip-bg) 0%, color-mix(in srgb, var(--chip-bg) 90%, #000) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 6px 14px -12px rgba(0, 0, 0, 0.6);
+  transition: filter 130ms ease, color 130ms ease, box-shadow 130ms ease, transform 90ms ease;
 }
 .chip:hover {
-  color: #dcdce8;
-  filter: brightness(1.12);
+  color: #e6e8f0;
+  filter: brightness(1.1);
 }
 .chip:active {
   transform: translateY(1px);
 }
 .chip-on {
-  color: #ffffff;
-  font-weight: 600;
-  background: linear-gradient(180deg, var(--chip-on-top) 0%, var(--chip-on-mid) 55%, var(--chip-on-bottom) 100%);
-  box-shadow: 0 3px 8px -3px rgba(0, 0, 0, 0.85);
+  color: var(--chip-on-fg, #ffffff);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 34%, rgba(255, 255, 255, 0) 58%),
+    linear-gradient(180deg, var(--chip-on-bg) 0%, color-mix(in srgb, var(--chip-on-bg) 88%, #000) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px var(--chip-on-ring, transparent),
+    0 8px 18px -12px var(--chip-on-glow, transparent);
 }
 .chip-on:hover {
-  color: #ffffff;
-}
-.chip-on-green {
-  --chip-on-top: #8ad46e;
-  --chip-on-mid: #4fae35;
-  --chip-on-bottom: #27631a;
-}
-.chip-on-cyan {
-  --chip-on-top: #7ad4ea;
-  --chip-on-mid: #35a8c6;
-  --chip-on-bottom: #156278;
-}
-.chip-on-violet {
-  --chip-on-top: #b49bf8;
-  --chip-on-mid: #7f5fe8;
-  --chip-on-bottom: #452a8f;
-}
-.chip-on-amber {
-  --chip-on-top: #e8bd68;
-  --chip-on-mid: #c9932c;
-  --chip-on-bottom: #77500f;
+  color: var(--chip-on-fg, #ffffff);
 }
 .chip-on-accent {
-  --chip-on-top: #7cc3f2;
-  --chip-on-mid: #3f8fd6;
-  --chip-on-bottom: #1d4d7d;
+  --chip-on-bg: #14304f;
+  --chip-on-fg: #8cc8ff;
+  --chip-on-ring: rgba(43, 124, 242, 0.5);
+  --chip-on-glow: rgba(43, 124, 242, 0.4);
+}
+.chip-on-green {
+  --chip-on-bg: #17351d;
+  --chip-on-fg: #7ee096;
+  --chip-on-ring: rgba(46, 160, 67, 0.5);
+}
+.chip-on-cyan {
+  --chip-on-bg: #11323d;
+  --chip-on-fg: #86d9ef;
+  --chip-on-ring: rgba(42, 157, 192, 0.5);
+}
+.chip-on-violet {
+  --chip-on-bg: #2a1f52;
+  --chip-on-fg: #c3b0ff;
+  --chip-on-ring: rgba(124, 76, 240, 0.5);
+}
+.chip-on-amber {
+  --chip-on-bg: #3a2c10;
+  --chip-on-fg: #f0c674;
+  --chip-on-ring: rgba(184, 134, 42, 0.5);
 }
 .chip-on-rose {
-  --chip-on-top: #e8797f;
-  --chip-on-mid: #cf3f48;
-  --chip-on-bottom: #7a1a22;
+  --chip-on-bg: #3d161d;
+  --chip-on-fg: #ff9aa6;
+  --chip-on-ring: rgba(203, 64, 80, 0.5);
 }
 
 /* Flat input field. */

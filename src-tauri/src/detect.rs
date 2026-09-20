@@ -1,4 +1,4 @@
-use crate::model::{Detection, ModState};
+﻿use crate::model::{Detection, ModState};
 use crate::pe;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -296,13 +296,18 @@ pub fn detect(dir: &Path, exe_hint: Option<&str>) -> Detection {
         ("sl.dlss_g", "streamline-fg", "fg"),
     ];
     let marker_names: Vec<&str> = tech_markers.iter().map(|m| m.0).collect();
-    let mut exe_markers = pe::scan_file_markers(&exe, &marker_names, 96 * 1_048_576);
-    if unity {
-        let up = dir.join("UnityPlayer.dll");
-        if up.is_file() {
-            for m in pe::scan_file_markers(&up, &marker_names, 48 * 1_048_576) {
-                if !exe_markers.contains(&m) {
-                    exe_markers.push(m);
+    // Reading a game exe costs seconds on a slow drive. Only do it when the
+    // shipped file names gave no answer (the usual case is covered by those).
+    let mut exe_markers = Vec::new();
+    if d.upscalers.is_empty() && d.framegen.is_empty() {
+        exe_markers = pe::scan_file_markers(&exe, &marker_names, 16 * 1_048_576);
+        if unity {
+            let up = dir.join("UnityPlayer.dll");
+            if up.is_file() {
+                for m in pe::scan_file_markers(&up, &marker_names, 16 * 1_048_576) {
+                    if !exe_markers.contains(&m) {
+                        exe_markers.push(m);
+                    }
                 }
             }
         }
@@ -333,16 +338,21 @@ pub fn detect(dir: &Path, exe_hint: Option<&str>) -> Detection {
         "d3d12.dll", "d3d11.dll", "d3d10.dll", "d3d9.dll", "d3d8.dll", "opengl32.dll",
         "ddraw.dll", "dinput8.dll", "xinput1_3.dll", "nvngx.dll",
     ];
-    for p in proxies {
-        let path = dir.join(p);
-        if !path.is_file() {
-            continue;
-        }
-        let found = pe::scan_file_markers(
-            &path,
-            &["OptiScaler", "ReShade", "dlssg_sm86", "DXVK", "dgVoodoo"],
-            32 * 1_048_576,
-        );
+    // Marker scans read up to 32 MB per file; interposer DLLs sit on slow game
+    // drives, so scan the present ones in parallel.
+    const MOD_MARKERS: &[&str] = &["OptiScaler", "ReShade", "dlssg_sm86", "DXVK", "dgVoodoo"];
+    let present: Vec<&str> = proxies.iter().copied().filter(|p| dir.join(p).is_file()).collect();
+    let scanned: Vec<(&str, Vec<String>)> = std::thread::scope(|s| {
+        let mut handles: Vec<_> = present
+            .iter()
+            .map(|p| {
+                let path = dir.join(p);
+                s.spawn(move || (*p, pe::scan_file_markers(&path, MOD_MARKERS, 32 * 1_048_576)))
+            })
+            .collect();
+        handles.drain(..).map(|h| h.join().unwrap_or(("", Vec::new()))).collect()
+    });
+    for (p, found) in scanned {
         // An OptiScaler binary mentions ReShade, dlssg_sm86, DXVK and dgVoodoo in its
         // strings (interop and detection); do not count those as separate installs.
         let is_opti = found.iter().any(|m| m == "OptiScaler");
@@ -476,3 +486,4 @@ mod tests {
         assert!(d.mods.optiscaler.is_some(), "OptiScaler proxy detected");
     }
 }
+

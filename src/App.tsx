@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import "./App.css";
 import { ComponentsPage } from "./components/ComponentsPage";
@@ -20,7 +20,6 @@ import {
   systemInfo,
 } from "./lib/api";
 import { cachedArtId, resolveArtId } from "./lib/art";
-import { loadCached, saveCached } from "./lib/detectCache";
 import type { AppUpdate, Artifact, Component, Detection, Game, GpuInfo } from "./lib/types";
 import { getAllowBeta } from "./lib/prefs";
 import { updatesAvailable } from "./lib/updates";
@@ -97,14 +96,11 @@ export default function App() {
     setProgress({ done: 0, total: queue.length });
     let done = 0;
     await runPool(queue, 5, async (g) => {
-      let d = force ? null : loadCached(g.installDir);
-      if (!d) {
-        try {
-          d = await detectGame(g.installDir, g.exe);
-          saveCached(g.installDir, d);
-        } catch {
-          d = null;
-        }
+      let d: Detection | null = null;
+      try {
+        d = await detectGame(g.installDir, g.exe);
+      } catch {
+        d = null;
       }
       if (d) {
         setDetections((prev) => ({ ...prev, [g.id]: d as Detection }));
@@ -157,7 +153,6 @@ export default function App() {
   const rescanOne = useCallback(async (g: Game) => {
     try {
       const d = await detectGame(g.installDir, g.exe);
-      saveCached(g.installDir, d);
       setDetections((prev) => ({ ...prev, [g.id]: d }));
     } catch {
       /* keep last result */
@@ -319,7 +314,7 @@ export default function App() {
                       game={g}
                       detection={detections[g.id]}
                       artId={artIds[g.id] ?? null}
-                      detecting={busy && !detections[g.id] && !loadCached(g.installDir)}
+                      detecting={busy && !detections[g.id]}
                       selected={selected === g.id}
                       onSelect={() => setSelected(g.id)}
                     />

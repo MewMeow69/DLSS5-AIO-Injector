@@ -1,5 +1,6 @@
 mod appsettings;
 mod artifacts;
+mod cache;
 mod detect;
 mod download;
 mod gpu;
@@ -57,7 +58,12 @@ async fn detect_game(install_dir: String, exe_hint: Option<String>) -> Detection
                 ..Default::default()
             };
         }
-        detect::detect(dir, exe_hint.as_deref())
+        if let Some(d) = cache::detection(dir) {
+            return d;
+        }
+        let d = detect::detect(dir, exe_hint.as_deref());
+        cache::store_detection(dir, &d);
+        d
     })
     .await
     .unwrap_or_default()

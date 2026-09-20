@@ -189,9 +189,16 @@ fn manual_games() -> Vec<Game> {
     if let Some(arr) = j.get("manualRoots").and_then(|v| v.as_array()) {
         for v in arr {
             let Some(p) = v.as_str() else { continue };
-            for dir in find_game_roots(&PathBuf::from(p)) {
-                games.push(manual_entry(&dir));
+            let root = PathBuf::from(p);
+            // The expansion walks the folder tree; cache it against the root's
+            // mtime so start-up does not re-walk a games drive every time.
+            if let Some(cached) = crate::cache::root_games(&root) {
+                games.extend(cached);
+                continue;
             }
+            let found: Vec<Game> = find_game_roots(&root).iter().map(|d| manual_entry(d)).collect();
+            crate::cache::store_root_games(&root, &found);
+            games.extend(found);
         }
     }
     games
@@ -297,4 +304,6 @@ mod tests {
         let _ = std::fs::remove_dir_all(&base);
     }
 }
+
+
 
