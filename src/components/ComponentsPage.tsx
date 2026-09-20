@@ -434,7 +434,7 @@ export function ComponentsPage({ onArtifactsChanged }: { onArtifactsChanged: (a:
                               </div>
                               <button
                                 onClick={() => void choose(kind, active && picked ? null : a.path)}
-                                className={`btn btn-sm ${active ? "btn-success" : "btn-ghost"}`}
+                                className={`btn btn-sm ${active ? "btn-active" : "btn-ghost"}`}
                                 title="Use this version for installs (roll back to an older build)"
                               >
                                 {active ? picked ? <Pin /> : <Check /> : <Pin />}

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 @font-face {
   font-family: "Roboto";
@@ -84,114 +84,121 @@ body {
 }
 
 /* ---------------------------------------------------------------- buttons --
-   Restrained glaze: the colour is lightened slightly at the top, runs at full
-   strength through the middle and darkens a touch at the bottom. No outlines.  */
+   Glazed pill: one base colour per variant, a soft white sheen over the top
+   third, a whisper of darkening at the bottom, no outlines.                 */
 
 .btn {
-  --btn-top: #4a4a5a;
-  --btn-mid: #32323e;
-  --btn-bottom: #1c1c24;
-  --btn-fg: #f2f2f7;
+  --btn-bg: #3b424d;
+  --btn-fg: #f4f5f8;
+  --btn-glow: rgba(0, 0, 0, 0.5);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  padding: 0.52rem 1rem;
-  border-radius: 11px;
+  gap: 0.6rem;
+  padding: 0.66rem 1.3rem;
+  border-radius: 13px;
   font-weight: 600;
-  font-size: 12.5px;
-  line-height: 1.2;
+  font-size: 14px;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
   color: var(--btn-fg);
-  background: linear-gradient(180deg, var(--btn-top) 0%, var(--btn-mid) 52%, var(--btn-bottom) 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 34%, rgba(255, 255, 255, 0) 58%),
+    linear-gradient(180deg, var(--btn-bg) 0%, color-mix(in srgb, var(--btn-bg) 91%, #000) 100%);
   box-shadow:
-    0 2px 5px rgba(0, 0, 0, 0.4),
-    0 12px 22px -12px rgba(0, 0, 0, 0.85);
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 8px 18px -12px var(--btn-glow);
   transition: filter 130ms ease, box-shadow 130ms ease, transform 90ms ease;
   white-space: nowrap;
 }
 .btn:hover:not(:disabled) {
-  filter: brightness(1.12) saturate(1.04);
+  filter: brightness(1.09) saturate(1.03);
   transform: translateY(-1px);
   box-shadow:
-    0 3px 7px rgba(0, 0, 0, 0.45),
-    0 16px 28px -12px rgba(0, 0, 0, 0.9);
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 12px 24px -12px var(--btn-glow);
 }
 .btn:active:not(:disabled) {
   transform: translateY(1px);
-  filter: brightness(0.96);
+  filter: brightness(0.97);
   box-shadow:
-    inset 0 2px 6px rgba(0, 0, 0, 0.5),
-    0 1px 3px rgba(0, 0, 0, 0.4);
+    inset 0 2px 6px rgba(0, 0, 0, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.35);
 }
 .btn:disabled {
-  opacity: 0.42;
-  filter: grayscale(0.35);
+  opacity: 0.4;
+  filter: grayscale(0.4);
   cursor: not-allowed;
 }
 .btn:focus-visible {
-  outline: 2px solid rgba(107, 124, 255, 0.65);
+  outline: 2px solid rgba(107, 124, 255, 0.7);
   outline-offset: 2px;
 }
 
 .btn-primary {
-  --btn-top: #7cc3f2;
-  --btn-mid: #3f8fd6;
-  --btn-bottom: #1d4d7d;
+  --btn-bg: #2b7cf2;
   --btn-fg: #ffffff;
+  --btn-glow: rgba(43, 124, 242, 0.55);
 }
 .btn-rose {
-  --btn-top: #e8797f;
-  --btn-mid: #cf3f48;
-  --btn-bottom: #7a1a22;
-  --btn-fg: #fff2f3;
+  --btn-bg: #cb4050;
+  --btn-fg: #fff3f4;
+  --btn-glow: rgba(203, 64, 80, 0.5);
 }
 .btn-success {
-  --btn-top: #8ad46e;
-  --btn-mid: #4fae35;
-  --btn-bottom: #27631a;
+  --btn-bg: #2ea043;
   --btn-fg: #f2ffec;
+  --btn-glow: rgba(46, 160, 67, 0.5);
+}
+/* Confirmed/active state: dark green pill, bright mark (the "Active" button). */
+.btn-active {
+  --btn-bg: #17351d;
+  --btn-fg: #eafff0;
+  --btn-glow: rgba(46, 160, 67, 0.3);
+  color: #ffffff;
+}
+.btn-active svg {
+  color: #56d364;
 }
 .btn-amber {
-  --btn-top: #e8bd68;
-  --btn-mid: #c9932c;
-  --btn-bottom: #77500f;
+  --btn-bg: #b8862a;
   --btn-fg: #fff8e8;
+  --btn-glow: rgba(184, 134, 42, 0.45);
 }
 .btn-violet {
-  --btn-top: #b49bf8;
-  --btn-mid: #7f5fe8;
-  --btn-bottom: #452a8f;
-  --btn-fg: #f6f1ff;
+  --btn-bg: #7c4cf0;
+  --btn-fg: #f7f3ff;
+  --btn-glow: rgba(124, 76, 240, 0.5);
 }
 .btn-cyan {
-  --btn-top: #7ad4ea;
-  --btn-mid: #35a8c6;
-  --btn-bottom: #156278;
+  --btn-bg: #2a9dc0;
   --btn-fg: #eefcff;
+  --btn-glow: rgba(42, 157, 192, 0.45);
 }
 .btn-ghost {
-  --btn-top: rgba(255, 255, 255, 0.07);
-  --btn-mid: rgba(255, 255, 255, 0.035);
-  --btn-bottom: rgba(0, 0, 0, 0.25);
-  --btn-fg: #c3c3d2;
+  --btn-fg: #c9cad6;
+  background: rgba(255, 255, 255, 0.055);
   box-shadow: none;
 }
 .btn-ghost:hover:not(:disabled) {
-  box-shadow: 0 4px 10px -6px rgba(0, 0, 0, 0.8);
+  background: rgba(255, 255, 255, 0.095);
+  box-shadow: none;
 }
 .btn-sm {
-  padding: 0.34rem 0.62rem;
-  border-radius: 9px;
-  font-size: 11px;
-  gap: 0.32rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 11px;
+  font-size: 12.5px;
+  gap: 0.45rem;
 }
 .btn-sm svg {
-  width: 11px;
-  height: 11px;
+  width: 14px;
+  height: 14px;
 }
 .btn svg {
-  width: 13px;
-  height: 13px;
+  width: 17px;
+  height: 17px;
   flex-shrink: 0;
 }
 
