@@ -276,6 +276,30 @@ body {
   --chip-on-ring: rgba(203, 64, 80, 0.5);
 }
 
+/* Underline tabs: text with a bottom rule, not a button. */
+.tabs {
+  display: flex;
+  gap: 1.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.tab {
+  padding: 0.5rem 0.05rem;
+  margin-bottom: -1px;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: #9a9cab;
+  border-bottom: 2px solid transparent;
+  transition: color 130ms ease, border-color 130ms ease;
+}
+.tab:hover {
+  color: #e6e8f0;
+}
+.tab-on {
+  color: #ffffff;
+  border-bottom-color: #2b7cf2;
+}
+
 /* Flat input field. */
 .inset {
   background: #101017;

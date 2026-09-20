@@ -26,7 +26,7 @@ export function GameDetail({
   onRescan: () => void;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
-  const [tab, setTab] = useState<"detection" | "settings">("detection");
+  const [tab, setTab] = useState<"install" | "detection" | "settings">("install");
   const mods = detection?.mods;
   const nrReady =
     !!gpu?.nrSupported && (!!detection && (detection.upscalers.length > 0 || detection.framegen.length > 0 || mods?.feeder));
@@ -101,32 +101,25 @@ export function GameDetail({
             </div>
           ))}
 
-          <div className="mt-4 flex gap-1.5">
-            <button
-              className={`chip ${tab === "detection" ? "chip-on chip-on-accent" : ""}`}
-              onClick={() => setTab("detection")}
-            >
-              Install &amp; Detection
-            </button>
-            <button
-              className={`chip ${tab === "settings" ? "chip-on chip-on-accent" : ""}`}
-              onClick={() => setTab("settings")}
-            >
-              Settings
-            </button>
+          <div className="tabs mt-4">
+            {(["install", "detection", "settings"] as const).map((t) => (
+              <button key={t} className={`tab ${tab === t ? "tab-on" : ""}`} onClick={() => setTab(t)}>
+                {t === "install" ? "Install" : t === "detection" ? "Detection" : "Settings"}
+              </button>
+            ))}
           </div>
 
-          {tab === "settings" ? (
-            <SettingsPanel game={game} detection={detection} />
-          ) : (
-            <>
-          <InstallPanel game={game} detection={detection} gpu={gpu} />
+          {tab === "settings" && <SettingsPanel game={game} detection={detection} />}
 
+          {tab === "install" && <InstallPanel game={game} detection={detection} gpu={gpu} />}
+
+          {tab === "detection" && (
+            <>
           <div className="mt-4">
             <SectionLabel>Detection</SectionLabel>
             <div className="tile-flush px-3.5 py-1.5">
               <Row label="Executable">
-                <span className="break-all text-deck-muted">{detection?.exe?.split("\\").slice(-1)[0] ?? "—"}</span>
+                <span className="break-all text-deck-muted">{detection?.exe?.split("\\").slice(-1)[0] ?? "-"}</span>
               </Row>
               <Row label="Folder">
                 <button
@@ -136,10 +129,10 @@ export function GameDetail({
                   {game.installDir}
                 </button>
               </Row>
-              <Row label="Files Scanned">{detection?.scannedFiles ?? "—"}</Row>
+              <Row label="Files Scanned">{detection?.scannedFiles ?? "-"}</Row>
               <Row label="GPU Runtime">
                 <span className={gpu?.nrSupported ? "font-semibold text-deck-green" : "text-deck-muted"}>
-                  {RUNTIME_LABEL[gpu?.nrRuntime ?? "none"] ?? gpu?.nrRuntime ?? "—"}
+                  {RUNTIME_LABEL[gpu?.nrRuntime ?? "none"] ?? gpu?.nrRuntime ?? "-"}
                 </span>
               </Row>
             </div>

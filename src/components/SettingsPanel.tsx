@@ -134,7 +134,7 @@ export function SettingsPanel({ game }: { game: Game; detection?: Detection }) {
           <Field label="Generate Before Upscale" hint="Cheaper: NR runs on the pre-upscale image">
             <Toggle on={settings.nr.runBeforeSr} onChange={(v) => patch((s) => ((s.nr.runBeforeSr = v), s))} />
           </Field>
-          <Field label="Model Resolution" hint="WorkingScale — lower is faster, higher is sharper">
+          <Field label="Model Resolution" hint="WorkingScale - lower is faster, higher is sharper">
             <Range
               value={settings.nr.workingScale}
               min={0.25}
@@ -143,7 +143,7 @@ export function SettingsPanel({ game }: { game: Game; detection?: Detection }) {
               onChange={(v) => patch((s) => ((s.nr.workingScale = v), s))}
             />
           </Field>
-          <Field label="Model Passes" hint="2–3 layers cost 2–3× model time">
+          <Field label="Model Passes" hint="2-3 layers cost 2-3× model time">
             <Range
               value={settings.nr.passes}
               min={1}
@@ -341,7 +341,7 @@ export function SettingsPanel({ game }: { game: Game; detection?: Detection }) {
 
       {!showNr && !showFg && !showReshade && (
         <div className="tile p-4 text-[12px] text-deck-muted">
-          <Bolt /> Install the mod first — settings appear once OptiScaler.ini or ReShadePreset.ini exists.
+          <Bolt /> Install the mod first - settings appear once OptiScaler.ini or ReShadePreset.ini exists.
         </div>
       )}
 

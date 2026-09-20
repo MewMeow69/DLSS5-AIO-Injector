@@ -285,12 +285,12 @@ export function ComponentsPage({ onArtifactsChanged }: { onArtifactsChanged: (a:
 
       <Popup
         open={showEnablerHelp}
-        title="DLSS Enabler — how to use it"
+        title="DLSS Enabler - how to use it"
         onClose={() => setShowEnablerHelp(false)}
       >
         <p>
           Artur's DLSS Enabler unlocks FSR frame generation / MFG inside OptiScaler. Its author ships an installer, so
-          this one step is manual — everything else in this app installs itself.
+          this one step is manual - everything else in this app installs itself.
         </p>
         <ol className="list-decimal space-y-1 pl-5">
           <li>Click <b>Download</b> above to fetch the official installer.</li>
@@ -301,7 +301,7 @@ export function ComponentsPage({ onArtifactsChanged }: { onArtifactsChanged: (a:
           </li>
         </ol>
         <p className="text-deck-muted">
-          Already have the DLL? Drop it into the game folder — the installer step will find it there.
+          Already have the DLL? Drop it into the game folder - the installer step will find it there.
         </p>
       </Popup>
 
@@ -446,7 +446,7 @@ export function ComponentsPage({ onArtifactsChanged }: { onArtifactsChanged: (a:
                       </div>
                     ) : (
                       <div className="mt-3 border-t border-white/[0.06] pt-2.5 text-[11.5px] text-deck-muted">
-                        No Local Copy Yet — Download It or Import a Folder That Holds It
+                        No Local Copy Yet - Download It or Import a Folder That Holds It
                       </div>
                     )}
                   </div>

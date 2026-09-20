@@ -48,11 +48,11 @@ export function GuidePage() {
             support it detected.
           </Step>
           <Step n={2} title="Pick the options and press Install">
-            Everything missing is downloaded during install — OptiScaler or RenoDX, the NR runtime for your GPU, the
+            Everything missing is downloaded during install - OptiScaler or RenoDX, the NR runtime for your GPU, the
             feeder and ReShade if the game needs them, frame-generation runtimes. Watch the log if you are curious.
           </Step>
           <Step n={3} title="Launch the game and enable NR">
-            <b>Insert</b> opens the OptiScaler overlay — tick <b>Neural Rendering</b> there. <b>Home</b> opens ReShade;
+            <b>Insert</b> opens the OptiScaler overlay - tick <b>Neural Rendering</b> there. <b>Home</b> opens ReShade;
             its Add-ons tab should list <i>DLSS 5 Feed</i>. <b>Page Up/Down</b> cycles the stats overlay.
           </Step>
         </div>
@@ -85,7 +85,7 @@ export function GuidePage() {
           </Row>
           <Row label="RTX 20/30/40 · ShortFuse">
             NVIDIA never shipped the model for these cards, so the cross-generation build is used. It works everywhere
-            the original does, but the RTX 20/30 path costs more GPU time — that is why <b>Balanced</b> (67% model
+            the original does, but the RTX 20/30 path costs more GPU time - that is why <b>Balanced</b> (67% model
             resolution) is the default there. On RTX 40 try <b>Quality</b> first.
           </Row>
           <Row label="AMD / Intel">
@@ -96,7 +96,7 @@ export function GuidePage() {
       </section>
 
       <section className="mt-5">
-        <SectionLabel>Frame Generation — Pick By What You Have</SectionLabel>
+        <SectionLabel>Frame Generation - Pick By What You Have</SectionLabel>
         <div className="tile px-4 py-2">
           <Row label="Game has DLSS Frame Gen">
             Use <b>DLSSG</b> with <b>Streamline</b> enabled. On RTX 20/30 add the <b>FG sm86</b> proxy so the DLSSG
@@ -108,7 +108,7 @@ export function GuidePage() {
           </Row>
           <Row label="Any GPU, no DLSSG">
             <b>FSR FG</b> works everywhere; turn <b>HUDfix</b> on to avoid HUD ghosting. <b>XeFG</b> also runs on any
-            GPU via the XeSS 3.x libraries the app installs — it needs Borderless Fullscreen, not exclusive.
+            GPU via the XeSS 3.x libraries the app installs - it needs Borderless Fullscreen, not exclusive.
           </Row>
           <Row label="Artur's DLSS Enabler">
             FSR multi-frame generation inside OptiScaler. Its author ships an installer, so download it from the game's
@@ -129,7 +129,7 @@ export function GuidePage() {
           <Row label="Balanced">67% model resolution, 1 pass. Default on RTX 20/30.</Row>
           <Row label="Performance">50% model resolution, 1 pass. Use it when the model eats too much frame time.</Row>
           <div className="pt-2 text-[11.5px] text-deck-muted">
-            Model resolution only affects NR's own work — your game image keeps full detail. Tune it per game in the
+            Model resolution only affects NR's own work - your game image keeps full detail. Tune it per game in the
             <b> Settings</b> tab and press <b>Save Settings</b>; nothing needs a reboot.
           </div>
         </div>
@@ -176,10 +176,10 @@ export function GuidePage() {
           <div className="flex flex-wrap gap-1.5 pb-2">
             <Pill tone="amber">Single-player only</Pill>
             <Pill tone="cyan">NR is off until you enable it</Pill>
-            <Pill tone="violet">Nothing is bundled — everything is downloaded</Pill>
+            <Pill tone="violet">Nothing is bundled - everything is downloaded</Pill>
           </div>
           Injected DLLs can trip anti-cheat systems; never use this in online games. Updates for every component live on
-          the <b>Components</b> page — the app checks on start and you can pin any version you prefer. Everything the
+          the <b>Components</b> page - the app checks on start and you can pin any version you prefer. Everything the
           app stores (downloads, registry, preferences) is listed in <b>Settings</b>.
           <div className="mt-2">
             <button

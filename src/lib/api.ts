@@ -126,7 +126,7 @@ export const RUNTIME_LABEL: Record<string, string> = {
 };
 
 export function fmtBytes(n: number | null | undefined): string {
-  if (!n) return "—";
+  if (!n) return "-";
   const gb = n / 1024 ** 3;
   return gb >= 1 ? `${gb.toFixed(1)} GB` : `${(n / 1024 ** 2).toFixed(0)} MB`;
 }

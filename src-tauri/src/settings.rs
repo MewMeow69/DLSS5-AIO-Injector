@@ -149,7 +149,7 @@ fn read_preset(dir: &Path) -> (Vec<String>, bool) {
     (inifile::read(&path), true)
 }
 
-/// Cheap presence check — the full detector walks the whole game folder and
+/// Cheap presence check - the full detector walks the whole game folder and
 /// must not run when the Settings tab opens.
 fn quick_mod_state(dir: &Path) -> (bool, bool, bool) {
     let proxies = [

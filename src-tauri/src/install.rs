@@ -432,10 +432,10 @@ pub fn plan(game_dir: &Path, detection: &Detection, opts: &InstallOptions) -> In
             .map(|p| p.file_name().unwrap().to_string_lossy().to_string())
             .unwrap_or_else(|| "no artifact - download or import required".into());
         if let Some(old) = &existing_opti {
-            detail.push_str(&format!(" \u{2014} updates the existing copy at {old} in place (backed up first)"));
+            detail.push_str(&format!(" - updates the existing copy at {old} in place (backed up first)"));
         }
         if detection.mods.optiscaler_asi {
-            detail.push_str(" \u{2014} an existing OptiScaler add-on is disabled (backed up)");
+            detail.push_str(" - an existing OptiScaler add-on is disabled (backed up)");
         }
         steps.push(PlanStep {
             id: "optiscaler".into(),
@@ -452,7 +452,7 @@ pub fn plan(game_dir: &Path, detection: &Detection, opts: &InstallOptions) -> In
             nr_nvidia.as_ref().map(|a| a.version.clone()).unwrap_or_else(|| "-".into())
         );
         if detection.mods.nr_runtime {
-            nr_detail.push_str(" \u{2014} replaces the existing nvngx_dlssnr.dll (backed up)");
+            nr_detail.push_str(" - replaces the existing nvngx_dlssnr.dll (backed up)");
         }
         steps.push(PlanStep {
             id: "runtime-nr".into(),
@@ -499,7 +499,7 @@ pub fn plan(game_dir: &Path, detection: &Detection, opts: &InstallOptions) -> In
                 .as_ref()
                 .map(|a| {
                     format!(
-                        "{} \u{2014} {}{}",
+                        "{} - {}{}",
                         a.variant.clone().unwrap_or_else(|| "dlss5".into()),
                         a.path.rsplit('\\').next().unwrap_or(""),
                         a.note.as_ref().map(|n| format!(" ({})", n)).unwrap_or_default()
@@ -523,10 +523,10 @@ pub fn plan(game_dir: &Path, detection: &Detection, opts: &InstallOptions) -> In
             "feeder installer, consumer = RenoDX (UAC prompt for the Vulkan layer)".to_string()
         };
         if let Some(r) = &existing_reshade {
-            detail.push_str(&format!(" \u{2014} upgrades the existing ReShade at {r}, its ini is kept and merged"));
+            detail.push_str(&format!(" - upgrades the existing ReShade at {r}, its ini is kept and merged"));
         }
         if detection.mods.feeder {
-            detail.push_str(" \u{2014} updates the existing feeder add-on");
+            detail.push_str(" - updates the existing feeder add-on");
         }
         steps.push(PlanStep {
             id: "feeder".into(),
@@ -541,7 +541,7 @@ pub fn plan(game_dir: &Path, detection: &Detection, opts: &InstallOptions) -> In
             .map(|a| format!("version.dll + dlssg_sm86.ini ({})", a.version))
             .unwrap_or_else(|| "not in payload".into());
         if detection.mods.dlssg_sm86 {
-            detail.push_str(" \u{2014} updates the existing files in place");
+            detail.push_str(" - updates the existing files in place");
         }
         steps.push(PlanStep {
             id: "sm86".into(),
@@ -988,7 +988,7 @@ pub fn run(progress: Progress, detection: &Detection, opts: &InstallOptions) -> 
             });
             emit("dlss-enabler", "DLSS Enabler", "OptiScaler\\dlss-enabler-headless.dll", true, None);
         } else if from_game.is_file() {
-            // Artur's installer drops the DLL in the game folder — reuse it
+            // Artur's installer drops the DLL in the game folder - reuse it
             writer.place(&from_game, "OptiScaler\\dlss-enabler-headless.dll")?;
             placed.push("OptiScaler\\dlss-enabler-headless.dll (from the game folder)".into());
             components.push(ComponentRecord {
@@ -998,7 +998,7 @@ pub fn run(progress: Progress, detection: &Detection, opts: &InstallOptions) -> 
             emit("dlss-enabler", "DLSS Enabler", "picked up from the game folder", true, None);
         } else {
             warnings.push(
-                "DLSS Enabler: download and run its installer (Components > DLSS Enabler), then install again — or drop dlss-enabler-headless.dll into the game folder".into(),
+                "DLSS Enabler: download and run its installer (Components > DLSS Enabler), then install again - or drop dlss-enabler-headless.dll into the game folder".into(),
             );
             emit(
                 "dlss-enabler",

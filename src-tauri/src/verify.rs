@@ -1,4 +1,4 @@
-﻿use crate::install;
+use crate::install;
 use crate::model::Detection;
 use crate::pe;
 use serde::{Deserialize, Serialize};
@@ -138,7 +138,7 @@ pub fn verify(dir: &Path, detection: Option<&Detection>) -> VerifyReport {
         if t.contains("model initialization failed") || t.contains("model wouldn't initialize") {
             report
                 .hints
-                .push("The NR model failed to initialise — check the NR runtime hash and your driver version.".into());
+                .push("The NR model failed to initialise - check the NR runtime hash and your driver version.".into());
         }
         if !t.contains("dlssnr") && !t.contains("neural") {
             report
@@ -146,7 +146,7 @@ pub fn verify(dir: &Path, detection: Option<&Detection>) -> VerifyReport {
                 .push("The log does not mention NR yet: it only appears after you enable Neural Rendering in the overlay.".into());
         }
     } else {
-        report.hints.push("No OptiScaler.log yet — launch the game once with logging enabled.".into());
+        report.hints.push("No OptiScaler.log yet - launch the game once with logging enabled.".into());
     }
     let feed_log = dir.join("dlss5-feed.log");
     if feed_log.is_file() {
@@ -158,7 +158,7 @@ pub fn verify(dir: &Path, detection: Option<&Detection>) -> VerifyReport {
         if text.contains("frame 0 delivered") || !text.contains("delivered") {
             report
                 .hints
-                .push("The feeder has not delivered frames yet — it only runs once the game presents with the add-on loaded.".into());
+                .push("The feeder has not delivered frames yet - it only runs once the game presents with the add-on loaded.".into());
         }
     }
     if let Some(d) = detection {

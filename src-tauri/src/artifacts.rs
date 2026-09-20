@@ -723,7 +723,7 @@ fn download_with_progress(
 
 /// Downloads one release file into the cache (sha256-verified when the release
 /// ships a sidecar) and returns its path. Registration is the caller's job so
-/// the variant stays explicit — that used to produce duplicate entries.
+/// the variant stays explicit - that used to produce duplicate entries.
 pub fn fetch_release(rel: &ReleaseInfo, kind: &str, file_needle: &str, emit_progress: Emit) -> Result<PathBuf, String> {
     let file = crate::registry::release_file(rel, file_needle)
         .ok_or_else(|| format!("release {} has no asset matching '{}'", rel.version, file_needle))?;

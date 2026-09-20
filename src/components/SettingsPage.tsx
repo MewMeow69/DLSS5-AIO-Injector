@@ -100,7 +100,7 @@ export function SettingsPage({
     setBusy(true);
     try {
       await resetAppData();
-      setStatus("All app data removed — restart the app to start fresh");
+      setStatus("All app data removed - restart the app to start fresh");
       await load();
     } catch (e) {
       setStatus(String(e));
@@ -245,7 +245,7 @@ export function SettingsPage({
           </Field>
         </div>
         <div className="mt-2 text-[11px] text-deck-muted">
-          Clearing downloads only removes files the app fetched — imported payload files are untouched, and anything
+          Clearing downloads only removes files the app fetched - imported payload files are untouched, and anything
           missing is downloaded again on the next install.
         </div>
       </section>
@@ -310,7 +310,7 @@ export function SettingsPage({
 
       <Popup open={confirmReset} title="Remove all app data?" onClose={() => setConfirmReset(false)}>
         <p>
-          This deletes the download cache, the artifact registry and your preferences. Installed games are not touched —
+          This deletes the download cache, the artifact registry and your preferences. Installed games are not touched -
           their files and rollback snapshots live in the game folders.
         </p>
         <div className="mt-3 flex gap-2">

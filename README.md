@@ -1,8 +1,8 @@
 # DLSS5 AIO Injector
 
 The app finds your games, works out what they already have (DLSS / FSR / XeSS, frame generation, which GPU you own),
-and installs the complete stack for the right path — OptiScaler, the NVIDIA Neural Rendering runtime, the DLSS 5
-Feeder, ReShade and the frame-generation runtimes — with per-game settings you can tune before you ever launch the game.
+and installs the complete stack for the right path - OptiScaler, the NVIDIA Neural Rendering runtime, the DLSS 5
+Feeder, ReShade and the frame-generation runtimes - with per-game settings you can tune before you ever launch the game.
 
 Nothing is bundled with the app. Every piece is downloaded from its official source while you watch the progress bar,
 so there is no "download this zip, extract it there" step. Click **Install**, wait, launch your game.
@@ -27,22 +27,22 @@ sensitive keys. This app does all of it, per game, and keeps a rollback snapshot
 
 ## What it can install, per game
 
-- **Neural Rendering (NR)** — two interchangeable paths:
+- **Neural Rendering (NR)** - two interchangeable paths:
   - **OptiScaler NR** (fork builds, proxy + INI + runtime) for games with DLSS/FSR/XeSS inputs
   - **RenoDX DLSS 5** through the DLSS 5 Feeder for games without them
-- **NVIDIA runtimes** — `nvngx_dlss.dll`, `nvngx_dlssnr.dll` (original for RTX 50, ShortFuse cross-generation build for
+- **NVIDIA runtimes** - `nvngx_dlss.dll`, `nvngx_dlssnr.dll` (original for RTX 50, ShortFuse cross-generation build for
   RTX 20/30/40), `nvngx_dlssd.dll` (Ray Reconstruction), `nvngx_dlssg.dll`
-- **DLSS 5 Feeder + ReShade** — add-on build, DLSS5_Feed shader, LumeniteFX motion-vector provider, Vulkan layer
-- **Frame generation** — DLSSG via Streamline, FSR FG, **XeFG on RTX / AMD / Intel** (Intel XeSS 3.x libraries plus
+- **DLSS 5 Feeder + ReShade** - add-on build, DLSS5_Feed shader, LumeniteFX motion-vector provider, Vulkan layer
+- **Frame generation** - DLSSG via Streamline, FSR FG, **XeFG on RTX / AMD / Intel** (Intel XeSS 3.x libraries plus
   `fakenvapi` for Reflex→XeLL pacing), Artur's DLSS Enabler for FSR MFG, **DLSSG on RTX 20/30** via the sm86 proxy
-- **MFG unlock fork** — [evairx/OptiScaler-MFG](https://github.com/evairx/OptiScaler-MFG), an unofficial OptiScaler
+- **MFG unlock fork** - [evairx/OptiScaler-MFG](https://github.com/evairx/OptiScaler-MFG), an unofficial OptiScaler
   fork that unlocks NVIDIA Multi Frame Generation on RTX 20/30/40 (up to 4X on Ampere/Turing, 6X on Ada) and keeps
   XeFG as an explicit output
-- **OptiPatcher** — unlocks DLSS/DLSSG inputs without spoofing in supported games
+- **OptiPatcher** - unlocks DLSS/DLSSG inputs without spoofing in supported games
 
 ### Proxy choice
 
-OptiScaler is installed as `dxgi.dll` whenever that name is free — the most compatible proxy for DX11/DX12 games.
+OptiScaler is installed as `dxgi.dll` whenever that name is free - the most compatible proxy for DX11/DX12 games.
 When ReShade is installed (feeder path) it takes `dxgi.dll` and OptiScaler moves to `winmm.dll`; the app allocates
 names across all mods so nothing collides.
 
@@ -69,27 +69,27 @@ XeLL). It presents in Borderless Fullscreen only and is not supported on Vulkan.
 
 1. Download `DLSS5-AIO-Injector_0.1.0_x64-setup.exe` from the [latest pre-release](../../releases).
 2. Run it. It installs per-user (no administrator prompt), with Start Menu and optional desktop shortcuts.
-3. The installer bootstraps the WebView2 runtime if it is missing — there is no separate prerequisite to install.
+3. The installer bootstraps the WebView2 runtime if it is missing - there is no separate prerequisite to install.
 
 ## Use
 
 1. The app scans your Steam / Epic / GOG libraries on first start (use **Add Folder** for anything else).
 2. Pick a game. The detail panel shows what was detected: API, engine, upscaler, frame generation, installed mods.
-3. Choose your options — NR provider (OptiScaler or RenoDX), presets, frame-generation output, extras.
+3. Choose your options - NR provider (OptiScaler or RenoDX), presets, frame-generation output, extras.
 4. Press **Install** and watch the log. Everything missing is downloaded; the panel reports each stage.
 5. Launch the game, press **Insert** for the OptiScaler overlay and enable **Neural Rendering** (it is off by default).
-   Press **Home** for ReShade — the Add-ons tab should list *DLSS 5 Feed*.
+   Press **Home** for ReShade - the Add-ons tab should list *DLSS 5 Feed*.
 6. Tune anything later in the game's **Settings** tab (NR, frame generation, ReShade feed) without launching the game.
 
 Roll back any time: the game page keeps your pre-install files in `_NeuroDeck/backups` and **Roll Back** restores them.
 
 ## Settings
 
-- **Per game** — the game page has a **Settings** tab: NR (enable, before-upscale, model resolution, passes, detail and
+- **Per game** - the game page has a **Settings** tab: NR (enable, before-upscale, model resolution, passes, detail and
   colour strength, HDR transfer, finished-picture), frame generation (input/output/replacement, generated frames,
   HUDfix, depth/MV copies), DLSS preset override and the ReShade feed (motion-vector provider, validation, mask
   strength, technique toggles). Every write is journalled, so **Roll Back** reverts settings too.
-- **App-wide** — the **Settings** page holds the default NR preset, the pre-release channel, start-up update checks, an
+- **App-wide** - the **Settings** page holds the default NR preset, the pre-release channel, start-up update checks, an
   optional GitHub token, the storage breakdown with a one-click download-cache clear, your manually added game folders,
   an app update check and a data reset.
 
@@ -105,7 +105,7 @@ startup and from the **Check for Updates** button; nightlies stay in their own c
 | Symptom | Fix |
 | --- | --- |
 | No overlay | Check the proxy DLL the game loads, try `Alt+Insert`; some games need `version.dll` instead of `winmm.dll` |
-| "Waiting for the upscaler to run" | NR needs an upscaler input — enable the feeder for that game, or use the RenoDX path |
+| "Waiting for the upscaler to run" | NR needs an upscaler input - enable the feeder for that game, or use the RenoDX path |
 | Unity game crashes on launch | Add `-force-vulkan` to the launch options (the app shows a copy button for Unity titles) |
 | Smearing / HDR blobs | ReShade → Add-ons → Generic Depth: pick the scene depth. For the RenoDX performance build set HDR Transfer Strength to 0 |
 | XeFG does not appear | XeFG only presents in **Borderless Fullscreen**, and non-Intel GPUs need the XeSS 3.x libraries option |
@@ -116,45 +116,45 @@ Logs live next to the game executable (`OptiScaler.log`, `dlss5-feed.log`, `ReSh
 
 ## Credits & attribution
 
-This app is an installer/manager. All of the actual technology belongs to these projects, and none of it is bundled —
+This app is an installer/manager. All of the actual technology belongs to these projects, and none of it is bundled -
 each piece is downloaded from its own source at install time.
 
-- **[OptiScaler](https://github.com/optiscaler/OptiScaler)** (cdozdil and contributors, GPL-3.0) — the upscaler
+- **[OptiScaler](https://github.com/optiscaler/OptiScaler)** (cdozdil and contributors, GPL-3.0) - the upscaler
   middleware this app installs and configures.
-- **OptiScaler Neural Rendering forks** — [Dagherbou/OptiScaler_DLSSNR](https://github.com/Dagherbou/OptiScaler_DLSSNR),
+- **OptiScaler Neural Rendering forks** - [Dagherbou/OptiScaler_DLSSNR](https://github.com/Dagherbou/OptiScaler_DLSSNR),
   [wilsjo2/OptiScaler-DLSSNR-PreSR-Multipass](https://github.com/wilsjo2/OptiScaler-DLSSNR-PreSR-Multipass),
   [janblade](https://github.com/janblade/OptiScaler-DLSSNR-PreSR-Multipass) and the upstream
   [nightly builds](https://github.com/optiscaler/OptiScaler-nightly).
-- **[RenoDX](https://github.com/clshortfuse/renodx) — ShortFuse** — the RenoDX DLSS add-on used for the alternative
+- **[RenoDX](https://github.com/clshortfuse/renodx) - ShortFuse** - the RenoDX DLSS add-on used for the alternative
   NR path, and the colour-composition design behind the Neural Rendering pass.
-- **[DLSS5-Feeder](https://github.com/jlrouzies-fr/DLSS5-Feeder)** (Jean-Laurent Rouzies, MIT) — the feeder add-on that
+- **[DLSS5-Feeder](https://github.com/jlrouzies-fr/DLSS5-Feeder)** (Jean-Laurent Rouzies, MIT) - the feeder add-on that
   supplies motion vectors and depth, plus its installer script.
-- **[ReShade](https://reshade.me)** (crosire, BSD-3-Clause) — the add-on host and Vulkan layer.
-- **[LumeniteFX](https://github.com/umar-afzaal/LumeniteFX)** (umar-afzaal, MIT) — motion-vector provider.
-- **[OptiScaler-MFG](https://github.com/evairx/OptiScaler-MFG)** (evairx, unofficial fork) — the NVIDIA MFG unlock for
+- **[ReShade](https://reshade.me)** (crosire, BSD-3-Clause) - the add-on host and Vulkan layer.
+- **[LumeniteFX](https://github.com/umar-afzaal/LumeniteFX)** (umar-afzaal, MIT) - motion-vector provider.
+- **[OptiScaler-MFG](https://github.com/evairx/OptiScaler-MFG)** (evairx, unofficial fork) - the NVIDIA MFG unlock for
   RTX 20/30/40 that keeps XeFG as an explicit output.
-- **[fakenvapi](https://github.com/optiscaler/fakenvapi)** (optiscaler) — Reflex hooking that injects XeLL for XeFG.
-- **[OptiPatcher](https://github.com/optiscaler/OptiPatcher)** (optiscaler) — DLSS/DLSSG input unlocking.
-- **[dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86)** (sdli1995, GPL-3.0) — frame generation on RTX 20/30.
-- **[DLSS Enabler](https://github.com/artur-graniszewski/DLSS-Enabler)** (Artur Graniszewski) — FSR frame generation /
+- **[fakenvapi](https://github.com/optiscaler/fakenvapi)** (optiscaler) - Reflex hooking that injects XeLL for XeFG.
+- **[OptiPatcher](https://github.com/optiscaler/OptiPatcher)** (optiscaler) - DLSS/DLSSG input unlocking.
+- **[dlssg_for_sm86](https://github.com/sdli1995/dlssg_for_sm86)** (sdli1995, GPL-3.0) - frame generation on RTX 20/30.
+- **[DLSS Enabler](https://github.com/artur-graniszewski/DLSS-Enabler)** (Artur Graniszewski) - FSR frame generation /
   MFG inside OptiScaler. Its installer is downloaded and run by you.
-- **NVIDIA** — `nvngx_dlss*.dll` and the Streamline SDK, downloaded from NVIDIA's public sources; never redistributed here.
-- **Intel** — [XeSS SDK](https://github.com/intel/xess) (`libxess`, `libxess_fg`, `libxell`) — enables XeFG, including
+- **NVIDIA** - `nvngx_dlss*.dll` and the Streamline SDK, downloaded from NVIDIA's public sources; never redistributed here.
+- **Intel** - [XeSS SDK](https://github.com/intel/xess) (`libxess`, `libxess_fg`, `libxell`) - enables XeFG, including
   on non-Intel GPUs.
-- **AMD** — FidelityFX/FSR runtimes, shipped inside the OptiScaler packages.
-- **[rankFTW/rhi-repo](https://github.com/RankFTW/rhi-repo)** — public mirror used for the NGX runtimes and RenoDX builds.
+- **AMD** - FidelityFX/FSR runtimes, shipped inside the OptiScaler packages.
+- **[rankFTW/rhi-repo](https://github.com/RankFTW/rhi-repo)** - public mirror used for the NGX runtimes and RenoDX builds.
 - Built with [Tauri](https://tauri.app), [React](https://react.dev), [Tailwind CSS](https://tailwindcss.com) and
   [Roboto](https://fonts.google.com/specimen/Roboto) (Apache-2.0).
 
 ## License
 
-**GPL-3.0** — see [LICENSE](LICENSE). The app is free software and integrates with GPL-3.0 projects (OptiScaler and its
+**GPL-3.0** - see [LICENSE](LICENSE). The app is free software and integrates with GPL-3.0 projects (OptiScaler and its
 Neural Rendering forks, dlssg_for_sm86); using the same license keeps the whole chain compatible. You may redistribute
 and modify it under the same terms.
 
 ## Disclaimer
 
 Unofficial project. Not affiliated with, endorsed by, or supported by NVIDIA, Intel, AMD, OptiScaler, RenoDX or any
-game developer. Injecting DLLs into games can break anti-cheat protected titles — use it in single-player games only,
+game developer. Injecting DLLs into games can break anti-cheat protected titles - use it in single-player games only,
 at your own risk. Everything is experimental: Neural Rendering is undocumented NVIDIA functionality driven directly by
 the OptiScaler forks.

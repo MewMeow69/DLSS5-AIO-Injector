@@ -251,7 +251,7 @@ export function InstallPanel({
   );
   const hasEnablerInstaller = enablerInstallerPath !== null;
   const buildOptions = useMemo(() => {
-    const opts = [{ value: "", label: "Auto — newest build across forks" }];
+    const opts = [{ value: "", label: "Auto - newest build across forks" }];
     const pools = ["optiscaler-wilsjo2", "optiscaler-janblade", "optiscaler-mfg", "optiscaler-nightly", "optiscaler"];
     for (const kind of pools) {
       for (const a of artifacts.filter((x) => x.kind === kind)) {
@@ -370,7 +370,7 @@ export function InstallPanel({
               {options.dlssEnabler && !hasDlssEnabler && (
                 <div className="mt-2 rounded-xl border border-deck-amber/25 bg-deck-amber/5 p-2.5">
                   <div className="text-[11.5px] text-deck-amber">
-                    Its author ships an installer, so this one piece is manual — everything else downloads itself.
+                    Its author ships an installer, so this one piece is manual - everything else downloads itself.
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button
@@ -566,10 +566,10 @@ export function InstallPanel({
       {result && <div className="mt-2 text-[11.5px] font-semibold text-deck-green">{result}</div>}
       {error && <div className="mt-2 text-[11.5px] font-semibold text-deck-rose">{error}</div>}
 
-      <Popup open={help} title="DLSS Enabler — how to use it" onClose={() => setHelp(false)}>
+      <Popup open={help} title="DLSS Enabler - how to use it" onClose={() => setHelp(false)}>
         <p>
           Artur's DLSS Enabler unlocks FSR frame generation / MFG inside OptiScaler. Its author ships an installer, so
-          this one step is manual — everything else in this app installs itself.
+          this one step is manual - everything else in this app installs itself.
         </p>
         <ol className="list-decimal space-y-1 pl-5">
           <li>Press <b>Download Installer</b> here (or in Components).</li>
@@ -582,9 +582,9 @@ export function InstallPanel({
       </Popup>
 
       <div className="mt-2.5 text-[11px] leading-relaxed text-deck-muted">
-        Everything missing is downloaded during install — no manual file drop needed. NR stays off afterwards: launch
-        the game, press <b className="text-deck-text">Insert</b>, enable Neural Rendering, then press{" "}
-        <b className="text-deck-text">Home</b> to confirm the feeder add-on loaded.
+          Everything missing is downloaded during install. NR stays off afterwards: launch the game, press{" "}
+          <b className="text-deck-text">Insert</b>, enable Neural Rendering, then press{" "}
+          <b className="text-deck-text">Home</b> to confirm the feeder add-on loaded.
       </div>
     </div>
   );

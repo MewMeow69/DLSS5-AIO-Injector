@@ -39,7 +39,7 @@ export function cachedArtId(game: Game): string | null {
 function cleanName(name: string) {
   return name
     .replace(/[™®©]/g, "")
-    .replace(/\s*[-–—]\s*(definitive|ultimate|deluxe|complete|enhanced|gold|premium)\s*edition.*$/i, "")
+    .replace(/\s*[---]\s*(definitive|ultimate|deluxe|complete|enhanced|gold|premium)\s*edition.*$/i, "")
     .replace(/\s*\((?:[^)]*)\)\s*$/, "")
     .trim();
 }
