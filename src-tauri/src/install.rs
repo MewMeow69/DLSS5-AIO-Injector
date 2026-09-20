@@ -2,6 +2,7 @@ use crate::artifacts::{self, Artifact};
 use crate::ini::set as set_ini;
 use crate::model::Detection;
 use crate::paths;
+use crate::pe;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -344,6 +345,23 @@ impl<'a> Writer<'a> {
         Ok(())
     }
 
+    /// Remove a pre-existing file we are replacing conceptually (e.g. a foreign
+    /// OptiScaler.asi): the original is backed up and restored on rollback/uninstall.
+    fn disable(&mut self, rel_dest: &str) -> Result<(), String> {
+        let dest = self.dir.join(rel_dest);
+        if !dest.is_file() {
+            return Ok(());
+        }
+        let key = self.rel(&dest);
+        if !self.replaced.contains_key(&key) {
+            let bak = self.backup_root.join("files").join(rel_dest);
+            std::fs::create_dir_all(bak.parent().unwrap()).map_err(|e| e.to_string())?;
+            std::fs::copy(&dest, &bak).map_err(|e| e.to_string())?;
+            self.replaced.insert(key, bak.to_string_lossy().to_string());
+        }
+        std::fs::remove_file(&dest).map_err(|e| e.to_string())
+    }
+
     fn write_text(&mut self, rel_dest: &str, text: &str) -> Result<(), String> {
         let dest = self.dir.join(rel_dest);
         if let Some(parent) = dest.parent() {
@@ -399,6 +417,8 @@ pub fn plan(game_dir: &Path, detection: &Detection, opts: &InstallOptions) -> In
     let mut warnings = Vec::new();
     let exe_dir = detection.exe_dir.clone().map(PathBuf::from);
     let provider = opts.provider().to_string();
+    let existing_opti = detection.mods.optiscaler.clone();
+    let existing_reshade = detection.mods.reshade.clone();
 
     if opts.uses_optiscaler() {
         let opti = opts
@@ -407,26 +427,37 @@ pub fn plan(game_dir: &Path, detection: &Detection, opts: &InstallOptions) -> In
             .map(PathBuf::from)
             .filter(|p| p.is_file())
             .or_else(|| artifacts::best_optiscaler().map(|a| PathBuf::from(a.path)));
+        let mut detail = opti
+            .as_ref()
+            .map(|p| p.file_name().unwrap().to_string_lossy().to_string())
+            .unwrap_or_else(|| "no artifact - download or import required".into());
+        if let Some(old) = &existing_opti {
+            detail.push_str(&format!(" \u{2014} updates the existing copy at {old} in place (backed up first)"));
+        }
+        if detection.mods.optiscaler_asi {
+            detail.push_str(" \u{2014} an existing OptiScaler add-on is disabled (backed up)");
+        }
         steps.push(PlanStep {
             id: "optiscaler".into(),
             title: "OptiScaler NR".into(),
-            detail: opti
-                .as_ref()
-                .map(|p| p.file_name().unwrap().to_string_lossy().to_string())
-                .unwrap_or_else(|| "no artifact - download or import required".into()),
+            detail,
             available: opti.is_some() || crate::registry::cached_downloadable("optiscaler-wilsjo2"),
         });
 
         let nr_compat = artifacts::best("runtime-nr-compat", None);
         let nr_nvidia = artifacts::best("runtime-nr-nvidia", None);
+        let mut nr_detail = format!(
+            "compat {} / nvidia {}",
+            nr_compat.as_ref().map(|a| a.version.clone()).unwrap_or_else(|| "-".into()),
+            nr_nvidia.as_ref().map(|a| a.version.clone()).unwrap_or_else(|| "-".into())
+        );
+        if detection.mods.nr_runtime {
+            nr_detail.push_str(" \u{2014} replaces the existing nvngx_dlssnr.dll (backed up)");
+        }
         steps.push(PlanStep {
             id: "runtime-nr".into(),
             title: "NR runtime (nvngx_dlssnr.dll)".into(),
-            detail: format!(
-                "compat {} / nvidia {}",
-                nr_compat.as_ref().map(|a| a.version.clone()).unwrap_or_else(|| "-".into()),
-                nr_nvidia.as_ref().map(|a| a.version.clone()).unwrap_or_else(|| "-".into())
-            ),
+            detail: nr_detail,
             available: nr_compat.is_some() || nr_nvidia.is_some() || crate::registry::cached_downloadable("runtime-nr-compat"),
         });
         steps.push(PlanStep {
@@ -486,25 +517,36 @@ pub fn plan(game_dir: &Path, detection: &Detection, opts: &InstallOptions) -> In
     }
 
     if opts.install_feeder || !opts.uses_optiscaler() {
+        let mut detail = if opts.uses_optiscaler() {
+            "feeder installer, consumer = OptiScaler (UAC prompt for the Vulkan layer)".to_string()
+        } else {
+            "feeder installer, consumer = RenoDX (UAC prompt for the Vulkan layer)".to_string()
+        };
+        if let Some(r) = &existing_reshade {
+            detail.push_str(&format!(" \u{2014} upgrades the existing ReShade at {r}, its ini is kept and merged"));
+        }
+        if detection.mods.feeder {
+            detail.push_str(" \u{2014} updates the existing feeder add-on");
+        }
         steps.push(PlanStep {
             id: "feeder".into(),
             title: "ReShade + DLSS5-Feeder".into(),
-            detail: if opts.uses_optiscaler() {
-                "feeder installer, consumer = OptiScaler (UAC prompt for the Vulkan layer)".into()
-            } else {
-                "feeder installer, consumer = RenoDX (UAC prompt for the Vulkan layer)".into()
-            },
+            detail,
             available: artifacts::best("installer-feeder", None).is_some()
                 || crate::registry::cached_downloadable("installer-feeder"),
         });
     }
     if opts.install_sm86 && opts.uses_optiscaler() {
+        let mut detail = artifacts::best("sm86", None)
+            .map(|a| format!("version.dll + dlssg_sm86.ini ({})", a.version))
+            .unwrap_or_else(|| "not in payload".into());
+        if detection.mods.dlssg_sm86 {
+            detail.push_str(" \u{2014} updates the existing files in place");
+        }
         steps.push(PlanStep {
             id: "sm86".into(),
             title: "DLSSG sm86 frame generation".into(),
-            detail: artifacts::best("sm86", None)
-                .map(|a| format!("version.dll + dlssg_sm86.ini ({})", a.version))
-                .unwrap_or_else(|| "not in payload".into()),
+            detail,
             available: artifacts::best("sm86", None).is_some() || crate::registry::cached_downloadable("sm86"),
         });
     }
@@ -546,6 +588,20 @@ pub fn plan(game_dir: &Path, detection: &Detection, opts: &InstallOptions) -> In
     }
     if opts.fg_output == "xefg" {
         warnings.push("XeFG only presents in Borderless Fullscreen, and non-Intel GPUs need the XeSS 3.x libraries".into());
+    }
+    if detection.mods.dxvk {
+        warnings.push("DXVK found: OptiScaler hooks D3D/DXGI and does not attach through a Vulkan wrapper - remove DXVK or use the feeder's Vulkan path".into());
+    }
+    if detection.mods.dgvoodoo {
+        warnings.push("dgVoodoo2 found: its wrapped output bypasses OptiScaler's hooks".into());
+    }
+    if detection.mods.dlss_enabler {
+        warnings.push("DLSS Enabler detected (nvngx.dll): it intercepts NGX calls too and can double-hook beside NR - removing it is safer".into());
+    }
+    if let Some(r) = &existing_reshade {
+        if !(opts.install_feeder || !opts.uses_optiscaler()) {
+            warnings.push(format!("ReShade at {r} is left untouched (the feeder is off; enable it to update ReShade)"));
+        }
     }
     if let Some(d) = &exe_dir {
         if !d.is_dir() {
@@ -659,6 +715,15 @@ pub fn run(progress: Progress, detection: &Detection, opts: &InstallOptions) -> 
             kind: "optiscaler".into(),
             version: opti_art.version.clone(),
         });
+
+        // A hand-installed OptiScaler loaded as a ReShade add-on would run beside ours.
+        for cand in ["OptiScaler.asi", "OptiScaler.dll"] {
+            let p = dir.join(cand);
+            if p.is_file() && !pe::scan_file_markers(&p, &["OptiScaler"], 40 * 1_048_576).is_empty() {
+                writer.disable(cand)?;
+                emit("optiscaler", "OptiScaler NR", &format!("existing {} disabled (backed up)", cand), true, None);
+            }
+        }
 
         let keep_ini = dir.join("OptiScaler.ini").is_file() && !opts.force;
         let mut stack = vec![(root.clone(), 0u32)];
@@ -1511,6 +1576,7 @@ mod tests {
         std::fs::write(game.join("FakeGame.exe"), vec![0u8; 2048]).unwrap();
         std::fs::write(game.join("OptiScaler.ini"), "[DlssNr]\nEnabled = false\nUserKey = keepme\n").unwrap();
         std::fs::write(game.join("dxgi.dll"), b"reshade-ish placeholder").unwrap();
+        std::fs::write(game.join("OptiScaler.asi"), "OptiScaler add-on payload").unwrap();
 
         let detection = detect::detect(&game, None);
         assert!(detection.exe.is_some(), "stub exe found");
@@ -1531,11 +1597,17 @@ mod tests {
         assert!(ini.contains("UserKey = keepme"), "existing keys preserved");
         assert!(ini.contains("Dx12Upscaler = dlss"));
         assert!(game.join("OptiScaler").is_dir(), "OptiScaler runtime folder copied");
+        assert!(!game.join("OptiScaler.asi").is_file(), "foreign OptiScaler.asi disabled");
 
         rollback(&game).expect("rollback");
         let ini_after = std::fs::read_to_string(game.join("OptiScaler.ini")).unwrap();
         assert!(!ini_after.contains("WorkingScale"), "rollback restored ini: {}", ini_after);
         assert!(!game.join(&report.proxy).is_file(), "proxy removed");
+        assert_eq!(
+            std::fs::read_to_string(game.join("OptiScaler.asi")).unwrap(),
+            "OptiScaler add-on payload",
+            "rollback restores the hand-installed add-on"
+        );
         let _ = std::fs::remove_dir_all(&base);
     }
 
@@ -1600,6 +1672,40 @@ mod tests {
         rollback(&game).unwrap();
         assert_eq!(std::fs::read_to_string(game.join("original.ini")).unwrap(), "vanilla");
         assert!(!game.join("added.dll").is_file());
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn disabled_foreign_file_comes_back_on_rollback() {
+        let base = std::env::temp_dir().join("neurodeck-disable-test");
+        let _ = std::fs::remove_dir_all(&base);
+        let game = base.join("game");
+        std::fs::create_dir_all(&game).unwrap();
+        std::fs::write(game.join("OptiScaler.asi"), "hand-installed").unwrap();
+        let backup = neuro_dir(&game).join("backups").join("test");
+        std::fs::create_dir_all(&backup).unwrap();
+
+        let mut w = Writer::new(&game, backup.clone());
+        w.disable("OptiScaler.asi").unwrap();
+        assert!(!game.join("OptiScaler.asi").is_file());
+        std::fs::write(
+            backup.join("journal.json"),
+            serde_json::to_string(&Journal { ts: "test".into(), added: w.added.clone(), replaced: w.replaced.clone() }).unwrap(),
+        )
+        .unwrap();
+        save_manifest(
+            &game,
+            &Manifest {
+                installed_at: "test".into(),
+                components: vec![],
+                options: InstallOptions::default(),
+                journals: vec!["test".into()],
+            },
+        )
+        .unwrap();
+
+        rollback(&game).unwrap();
+        assert_eq!(std::fs::read_to_string(game.join("OptiScaler.asi")).unwrap(), "hand-installed");
         let _ = std::fs::remove_dir_all(&base);
     }
 }

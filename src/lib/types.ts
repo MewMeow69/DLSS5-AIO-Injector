@@ -14,6 +14,7 @@ export interface Game {
 export interface ModState {
   optiscaler: string | null;
   optiscalerVersion: string | null;
+  optiscalerAsi: boolean;
   reshade: string | null;
   feeder: boolean;
   nrRuntime: boolean;
@@ -21,6 +22,10 @@ export interface ModState {
   dlssgSm86: boolean;
   optipatcher: boolean;
   streamline: boolean;
+  dxvk: boolean;
+  dgvoodoo: boolean;
+  dlssEnabler: boolean;
+  fakenvapi: boolean;
   backupDir: string | null;
 }
 

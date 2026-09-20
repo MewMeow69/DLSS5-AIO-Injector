@@ -186,8 +186,14 @@ mod tests {
                 continue;
             }
             let detection = crate::detect::detect(path, None);
+            let m = &detection.mods;
+            println!(
+                "\n=== {dir} mods: opti={:?} asi={} reshade={:?} feeder={} nr={} sm86={} dxvk={} dgvoodoo={} enabler={} fakenvapi={} ===",
+                m.optiscaler, m.optiscaler_asi, m.reshade, m.feeder, m.nr_runtime, m.dlssg_sm86,
+                m.dxvk, m.dgvoodoo, m.dlss_enabler, m.fakenvapi
+            );
             let report = verify(path, Some(&detection));
-            println!("\n=== {dir} (managed={}) ===", report.managed);
+            println!("=== {dir} (managed={}) ===", report.managed);
             for c in &report.checks {
                 println!(" {} {:<28} {}", if c.ok { "OK  " } else { "MISS" }, c.label, c.detail);
             }

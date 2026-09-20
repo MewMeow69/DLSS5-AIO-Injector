@@ -18,6 +18,7 @@ pub struct Game {
 pub struct ModState {
     pub optiscaler: Option<String>,
     pub optiscaler_version: Option<String>,
+    pub optiscaler_asi: bool,
     pub reshade: Option<String>,
     pub feeder: bool,
     pub nr_runtime: bool,
@@ -25,6 +26,10 @@ pub struct ModState {
     pub dlssg_sm86: bool,
     pub optipatcher: bool,
     pub streamline: bool,
+    pub dxvk: bool,
+    pub dgvoodoo: bool,
+    pub dlss_enabler: bool,
+    pub fakenvapi: bool,
     pub backup_dir: Option<String>,
 }
 

@@ -297,26 +297,55 @@ pub fn detect(dir: &Path, exe_hint: Option<&str>) -> Detection {
     }
 
     let mut mods = ModState::default();
-    let proxies = ["dxgi.dll", "winmm.dll", "version.dll", "dbghelp.dll", "winhttp.dll", "wininet.dll", "d3d12.dll"];
+    // Every name a ReShade or OptiScaler install can take; anything a game loads as
+    // an interposer has to be one of these (or an .asi loaded by ReShade).
+    let proxies = [
+        "dxgi.dll", "winmm.dll", "version.dll", "dbghelp.dll", "winhttp.dll", "wininet.dll",
+        "d3d12.dll", "d3d11.dll", "d3d10.dll", "d3d9.dll", "d3d8.dll", "opengl32.dll",
+        "ddraw.dll", "dinput8.dll", "xinput1_3.dll", "nvngx.dll",
+    ];
     for p in proxies {
         let path = dir.join(p);
         if !path.is_file() {
             continue;
         }
-        let found = pe::scan_file_markers(&path, &["OptiScaler", "ReShade", "dlssg_sm86"], 32 * 1_048_576);
+        let found = pe::scan_file_markers(
+            &path,
+            &["OptiScaler", "ReShade", "dlssg_sm86", "DXVK", "dgVoodoo"],
+            32 * 1_048_576,
+        );
+        // An OptiScaler binary mentions ReShade, dlssg_sm86, DXVK and dgVoodoo in its
+        // strings (interop and detection); do not count those as separate installs.
+        let is_opti = found.iter().any(|m| m == "OptiScaler");
         for marker in found {
             match marker.as_str() {
                 "OptiScaler" if mods.optiscaler.is_none() => mods.optiscaler = Some(p.into()),
-                "ReShade" if mods.reshade.is_none() => mods.reshade = Some(p.into()),
-                "dlssg_sm86" => mods.dlssg_sm86 = true,
+                "ReShade" if !is_opti && mods.reshade.is_none() => mods.reshade = Some(p.into()),
+                "dlssg_sm86" if !is_opti => mods.dlssg_sm86 = true,
+                "DXVK" if !is_opti => mods.dxvk = true,
+                "dgVoodoo" if !is_opti => mods.dgvoodoo = true,
                 _ => {}
             }
         }
     }
+    mods.optiscaler_asi = dir.join("OptiScaler.asi").is_file() || dir.join("OptiScaler.dll").is_file();
     if names.contains("dlss5-feed.addon64") || names.contains("dlss5-feed.addon32") {
         mods.feeder = true;
     }
-    mods.dlssg_sm86 = names.contains("dlssg_sm86.ini")
+    // Only the root-level NGX wrapper conflicts with our runtimes; dlss-enabler-headless.dll
+    // inside OptiScaler\ is a payload we install ourselves.
+    mods.dlss_enabler = dir.join("nvngx.dll").is_file()
+        || std::fs::read_dir(dir)
+            .map(|rd| {
+                rd.flatten().any(|e| {
+                    let n = e.file_name().to_string_lossy().to_lowercase();
+                    n.starts_with("dlss-enabler") && n.ends_with(".dll")
+                })
+            })
+            .unwrap_or(false);
+    mods.fakenvapi = names.contains("fakenvapi.dll");
+    mods.dlssg_sm86 = mods.dlssg_sm86
+        || names.contains("dlssg_sm86.ini")
         || names.contains("dlssg_sm86.dll")
         || dir.join("dlssg_sm86").is_dir();
     if names.contains("nvngx_dlssnr.dll") {
@@ -372,6 +401,32 @@ mod tests {
         } else {
             None
         }
+    }
+
+    #[test]
+    fn detects_foreign_mods_without_false_reshade() {
+        let dir = std::env::temp_dir().join("neurodeck-detect-foreign");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("Game.exe"), vec![0u8; 1024]).unwrap();
+        // OptiScaler's own strings mention ReShade and dlssg_sm86 - must not count as those.
+        std::fs::write(dir.join("winmm.dll"), b"MZ ... OptiScaler ... ReShade ... dlssg_sm86").unwrap();
+        std::fs::write(dir.join("dxgi.dll"), b"MZ ... DXVK ... linker: DXVK").unwrap();
+        std::fs::write(dir.join("OptiScaler.asi"), b"asi").unwrap();
+        std::fs::write(dir.join("dlss-enabler.dll"), b"x").unwrap();
+        std::fs::write(dir.join("fakenvapi.dll"), b"x").unwrap();
+        std::fs::write(dir.join("nvngx_dlssnr.dll"), vec![7u8; 4096]).unwrap();
+
+        let d = detect(&dir, None);
+        assert_eq!(d.mods.optiscaler.as_deref(), Some("winmm.dll"));
+        assert!(d.mods.reshade.is_none(), "OptiScaler must not be reported as ReShade");
+        assert!(!d.mods.dlssg_sm86, "OptiScaler must not be reported as sm86");
+        assert!(d.mods.dxvk);
+        assert!(d.mods.optiscaler_asi);
+        assert!(d.mods.dlss_enabler);
+        assert!(d.mods.fakenvapi);
+        assert!(d.mods.nr_runtime);
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

@@ -17,6 +17,14 @@ Third alpha. One click turns a normal game install into a Neural Rendering + Fra
   (proxy DLL, `OptiScaler.ini`, runtime folders, NR/DLSS/DLSSD runtimes, XeFG libraries, sm86 config **and** its
   `version.dll` proxy, feeder add-on, ReShade host, rollback snapshot) and reads the feeder/OptiScaler logs for the
   usual startup problems.
+- **Pre-existing mods are understood, not guessed at** — detection now covers every proxy name ReShade and OptiScaler
+  can take, plus hand-installed `OptiScaler.asi`/`OptiScaler.dll` add-ons, DXVK, dgVoodoo2, DLSS Enabler (`nvngx.dll`)
+  and fakenvapi. A hand-installed OptiScaler is updated **in place** on its own proxy name with the old files backed up,
+  its `OptiScaler.ini` is kept, a hand-installed `.asi` copy is disabled and restored by Roll Back, an existing ReShade
+  host is upgraded by the feeder installer with its ini merged, and existing sm86/NR/feeder files are replaced in place.
+  DXVK, dgVoodoo2 and DLSS Enabler are reported as conflicts in the install plan instead of being silently overwritten.
+- Fixed: OptiScaler's own binaries were misread as ReShade/sm86/DXVK installs (its strings mention them), and our own
+  `OptiScaler\dlss-enabler-headless.dll` payload was misread as a DLSS Enabler conflict.
 - Fixed: the neural consumer the feeder installer placed ignored the build you picked and always fetched the
   Dagherbou OptiScaler-DLSSNR release (≈130 MB). The chosen build's zip is now handed to the installer.
 - Fixed: the per-game DLSS preset was overwritten by the global default preset on every re-open.

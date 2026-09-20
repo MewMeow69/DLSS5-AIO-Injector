@@ -186,6 +186,46 @@ export function GameDetail({
                   <Check on={!!mods?.streamline} />
                 </span>
               </Row>
+              {mods?.optiscalerAsi && (
+                <Row label="OptiScaler add-on">
+                  <span className="inline-flex items-center gap-2">
+                    <Check on={true} />
+                    <span className="text-deck-muted">OptiScaler.asi - replaced on the next install</span>
+                  </span>
+                </Row>
+              )}
+              {mods?.dxvk && (
+                <Row label="DXVK">
+                  <span className="inline-flex items-center gap-2">
+                    <Check on={true} />
+                    <span className="text-deck-muted">Vulkan wrapper - OptiScaler hooks will not attach</span>
+                  </span>
+                </Row>
+              )}
+              {mods?.dgvoodoo && (
+                <Row label="dgVoodoo2">
+                  <span className="inline-flex items-center gap-2">
+                    <Check on={true} />
+                    <span className="text-deck-muted">wrapped output bypasses OptiScaler</span>
+                  </span>
+                </Row>
+              )}
+              {mods?.dlssEnabler && (
+                <Row label="DLSS Enabler">
+                  <span className="inline-flex items-center gap-2">
+                    <Check on={true} />
+                    <span className="text-deck-muted">nvngx.dll wrapper - can conflict with NR</span>
+                  </span>
+                </Row>
+              )}
+              {mods?.fakenvapi && (
+                <Row label="fakenvapi">
+                  <span className="inline-flex items-center gap-2">
+                    <Check on={true} />
+                    <span className="text-deck-muted">Reflex → XeLL bridge</span>
+                  </span>
+                </Row>
+              )}
             </div>
           </div>
 
