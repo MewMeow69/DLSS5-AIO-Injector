@@ -1,6 +1,33 @@
-# DLSS5 AIO Injector - v0.1.2-alpha
+# DLSS5 AIO Injector - v0.1.3-alpha
 
-Third alpha. One click turns a normal game install into a Neural Rendering + Frame Generation setup.
+Fourth alpha. One click turns a normal game install into a Neural Rendering + Frame Generation setup.
+
+## New in 0.1.3
+
+- **Verify Install** - the game panel checks the folder against what was selected (proxy DLL, `OptiScaler.ini`, runtime
+  folders, NR/DLSS/DLSSD runtimes, XeFG libraries, sm86 config **and** its `version.dll` proxy, feeder add-on, ReShade
+  host, rollback snapshot) and reads the feeder/OptiScaler logs for the usual startup problems.
+- **The game panel has real tabs** - Install, Detection and Settings are underline tabs, and the install options are
+  quiet toggle rows under the action buttons instead of a wall of pill buttons.
+- **One button style everywhere** - buttons and chips share the same glazed look, with a dark green "Active" state.
+- **Add Folder now takes a games folder, not just a game** - adding `E:\gameria` (or any parent) lists the games inside
+  it, one entry per game; adding a single game's own folder still works and keeps its name. Games with no exe at their
+  top level (Unreal titles like Stellar Blade, Hades II) are found through their real game exe, not the biggest helper.
+- **Pre-existing mods are understood, not guessed at** - detection now covers every proxy name ReShade and OptiScaler
+  can take, plus hand-installed `OptiScaler.asi`/`OptiScaler.dll` add-ons, DXVK, dgVoodoo2, DLSS Enabler (`nvngx.dll`)
+  and fakenvapi. A hand-installed OptiScaler is updated **in place** on its own proxy name with the old files backed up,
+  its `OptiScaler.ini` is kept, a hand-installed `.asi` copy is disabled and restored by Roll Back, an existing ReShade
+  host is upgraded by the feeder installer with its ini merged, and existing sm86/NR/feeder files are replaced in place.
+  DXVK, dgVoodoo2 and DLSS Enabler are reported as conflicts in the install plan instead of being silently overwritten.
+- **Library loads instantly after the first scan** - manual-folder expansions and detection results are cached against
+  file timestamps in a small `cache\scan-cache.json` (a few hundred KB, self-pruning), and detection no longer reads up
+  to 96 MB of game exe when the shipped DLL names already answer. A cold detection of the reference install went from
+  33 s to under 5 s, warm from seconds to milliseconds.
+- Fixed: the neural consumer the feeder installer placed ignored the build you picked and always fetched the Dagherbou
+  OptiScaler-DLSSNR release (about 130 MB). The chosen build's zip is now handed to the installer.
+- Fixed: the per-game DLSS preset was overwritten by the global default preset on every re-open.
+- Fixed: OptiScaler's own binaries were misread as ReShade/sm86/DXVK installs (its strings mention them), and our own
+  `OptiScaler\dlss-enabler-headless.dll` payload was misread as a DLSS Enabler conflict.
 
 ## New in 0.1.2
 
@@ -13,26 +40,6 @@ Third alpha. One click turns a normal game install into a Neural Rendering + Fra
 - **DLSS preset control** per game - force a DLSS render preset (D-K) for every quality mode, plus the generic NGX app-id
   fix for games where overrides do not apply.
 - **App update banner** - the start-up check now looks at this repository's releases and offers the new version.
-- **Verify Install** - after installing, the game panel's install tab checks the folder against what was selected
-  (proxy DLL, `OptiScaler.ini`, runtime folders, NR/DLSS/DLSSD runtimes, XeFG libraries, sm86 config **and** its
-  `version.dll` proxy, feeder add-on, ReShade host, rollback snapshot) and reads the feeder/OptiScaler logs for the
-  usual startup problems.
-- **The game panel has real tabs** - Install, Detection and Settings are underline tabs now, and the install options are
-  quiet toggle rows under the action buttons instead of a wall of pill buttons.
-- **Add Folder now takes a games folder, not just a game** - adding `E:\gameria` (or any parent) lists the games inside it,
-  one entry per game; adding a single game's own folder still works and keeps its name. Games with no exe at their top
-  level (Unreal titles like Stellar Blade, Hades II) are found through their real game exe, not the biggest helper exe.
-- **Pre-existing mods are understood, not guessed at** - detection now covers every proxy name ReShade and OptiScaler
-  can take, plus hand-installed `OptiScaler.asi`/`OptiScaler.dll` add-ons, DXVK, dgVoodoo2, DLSS Enabler (`nvngx.dll`)
-  and fakenvapi. A hand-installed OptiScaler is updated **in place** on its own proxy name with the old files backed up,
-  its `OptiScaler.ini` is kept, a hand-installed `.asi` copy is disabled and restored by Roll Back, an existing ReShade
-  host is upgraded by the feeder installer with its ini merged, and existing sm86/NR/feeder files are replaced in place.
-  DXVK, dgVoodoo2 and DLSS Enabler are reported as conflicts in the install plan instead of being silently overwritten.
-- Fixed: OptiScaler's own binaries were misread as ReShade/sm86/DXVK installs (its strings mention them), and our own
-  `OptiScaler\dlss-enabler-headless.dll` payload was misread as a DLSS Enabler conflict.
-- Fixed: the neural consumer the feeder installer placed ignored the build you picked and always fetched the
-  Dagherbou OptiScaler-DLSSNR release (≈130 MB). The chosen build's zip is now handed to the installer.
-- Fixed: the per-game DLSS preset was overwritten by the global default preset on every re-open.
 - Stale extraction folders are cleaned up automatically; installed games are never touched by any of the settings.
 
 ## New in 0.1.1
@@ -66,7 +73,7 @@ Third alpha. One click turns a normal game install into a Neural Rendering + Fra
 
 ## Install
 
-Download `DLSS5 AIO Injector_0.1.2_x64-setup.exe` below and run it. It installs per-user (no administrator prompt) and
+Download `DLSS5 AIO Injector_0.1.3_x64-setup.exe` below and run it. It installs per-user (no administrator prompt) and
 bootstraps the WebView2 runtime automatically if it is missing - no other prerequisites.
 
 ## Known limitations (alpha)
