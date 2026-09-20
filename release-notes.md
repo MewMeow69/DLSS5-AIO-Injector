@@ -17,6 +17,9 @@ Third alpha. One click turns a normal game install into a Neural Rendering + Fra
   (proxy DLL, `OptiScaler.ini`, runtime folders, NR/DLSS/DLSSD runtimes, XeFG libraries, sm86 config **and** its
   `version.dll` proxy, feeder add-on, ReShade host, rollback snapshot) and reads the feeder/OptiScaler logs for the
   usual startup problems.
+- **Add Folder now takes a games folder, not just a game** — adding `E:\gameria` (or any parent) lists the games inside it,
+  one entry per game; adding a single game's own folder still works and keeps its name. Games with no exe at their top
+  level (Unreal titles like Stellar Blade, Hades II) are found through their real game exe, not the biggest helper exe.
 - **Pre-existing mods are understood, not guessed at** — detection now covers every proxy name ReShade and OptiScaler
   can take, plus hand-installed `OptiScaler.asi`/`OptiScaler.dll` add-ons, DXVK, dgVoodoo2, DLSS Enabler (`nvngx.dll`)
   and fakenvapi. A hand-installed OptiScaler is updated **in place** on its own proxy name with the old files backed up,

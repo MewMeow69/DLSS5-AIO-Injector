@@ -1,3 +1,4 @@
+﻿use crate::detect;
 use crate::model::Game;
 use crate::vdf;
 use std::collections::HashSet;
@@ -188,24 +189,61 @@ fn manual_games() -> Vec<Game> {
     if let Some(arr) = j.get("manualRoots").and_then(|v| v.as_array()) {
         for v in arr {
             let Some(p) = v.as_str() else { continue };
-            let dir = PathBuf::from(p);
-            let name = dir
-                .file_name()
-                .map(|n| n.to_string_lossy().to_string())
-                .unwrap_or_else(|| p.to_string());
-            games.push(Game {
-                id: format!("manual:{}", name.to_lowercase().replace(' ', "_")),
-                store: "manual".into(),
-                name,
-                install_dir: p.to_string(),
-                exe: None,
-                app_id: None,
-                size_bytes: None,
-                library_online: dir.is_dir(),
-            });
+            for dir in find_game_roots(&PathBuf::from(p)) {
+                games.push(manual_entry(&dir));
+            }
         }
     }
     games
+}
+
+fn manual_entry(dir: &Path) -> Game {
+    let name = dir
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| dir.to_string_lossy().to_string());
+    Game {
+        id: format!("manual:{}", dir.to_string_lossy().to_lowercase().replace('\\', "/")),
+        store: "manual".into(),
+        name,
+        install_dir: dir.to_string_lossy().to_string(),
+        exe: None,
+        app_id: None,
+        size_bytes: None,
+        library_online: dir.is_dir(),
+    }
+}
+
+/// A manual root may be a single game or a games folder (E:\gameria). Each direct
+/// child that looks like a game (an exe of its own, or a game nested inside it) is
+/// one entry; a child is never scanned for a second game.
+fn find_game_roots(root: &Path) -> Vec<PathBuf> {
+    if !root.is_dir() {
+        return Vec::new();
+    }
+    // The folder itself is a game (exe right here) - do not descend into it.
+    if detect::has_direct_exe(root) {
+        return vec![root.to_path_buf()];
+    }
+    let children: Vec<PathBuf> = std::fs::read_dir(root)
+        .map(|rd| rd.flatten().map(|e| e.path()).filter(|p| p.is_dir()).collect())
+        .unwrap_or_default();
+    let out: Vec<PathBuf> = children
+        .iter()
+        .filter(|c| detect::has_direct_exe(c) || detect::find_main_exe(c, None).is_some())
+        .cloned()
+        .collect();
+    if out.is_empty() {
+        return if detect::find_main_exe(root, None).is_some() { vec![root.to_path_buf()] } else { Vec::new() };
+    }
+    // Pointed at one game's own folder whose exe sits in a subfolder: every "game"
+    // found below is that same exe, so the folder is the game, not its subfolders.
+    if let Some(re) = detect::find_main_exe(root, None) {
+        if out.iter().all(|g| detect::find_main_exe(g, None).as_deref() == Some(re.as_path())) {
+            return vec![root.to_path_buf()];
+        }
+    }
+    out
 }
 
 pub fn scan_all() -> Vec<Game> {
@@ -232,4 +270,31 @@ mod tests {
         }
         println!("total: {}", games.len());
     }
+
+    #[test]
+    fn parent_folder_expands_into_games() {
+        let base = std::env::temp_dir().join("neurodeck-manual-roots");
+        let _ = std::fs::remove_dir_all(&base);
+        let ue = base.join("Stellar Blade").join("SB").join("Binaries").join("Win64");
+        std::fs::create_dir_all(&ue).unwrap();
+        std::fs::write(ue.join("SB-Win64-Shipping.exe"), vec![1u8; 4096]).unwrap();
+        let flat = base.join("Flat Game");
+        std::fs::create_dir_all(&flat).unwrap();
+        std::fs::write(flat.join("Flat Game.exe"), vec![1u8; 8192]).unwrap();
+        let junk = base.join("not-a-game");
+        std::fs::create_dir_all(&junk).unwrap();
+        std::fs::write(junk.join("readme.txt"), "x").unwrap();
+
+        let mut roots: Vec<String> = find_game_roots(&base)
+            .iter()
+            .map(|p| p.file_name().unwrap().to_string_lossy().to_string())
+            .collect();
+        roots.sort();
+        assert_eq!(roots, vec!["Flat Game".to_string(), "Stellar Blade".to_string()]);
+
+        let single = base.join("Flat Game");
+        assert_eq!(find_game_roots(&single).len(), 1, "a game root stays one game");
+        let _ = std::fs::remove_dir_all(&base);
+    }
 }
+

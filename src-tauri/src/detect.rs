@@ -28,6 +28,8 @@ const EXE_NOISE: &[&str] = &[
     "touchup",
     "helper",
     "report",
+    "cefsubprocess",
+    "quicksfv",
 ];
 
 fn is_noise_exe(name: &str) -> bool {
@@ -64,6 +66,15 @@ pub fn walk_files(root: &Path, max_depth: u32, cap: usize) -> Vec<PathBuf> {
         }
     }
     out
+}
+
+/// A game exe sitting directly in this folder (not somewhere below it).
+pub fn has_direct_exe(dir: &Path) -> bool {
+    let Ok(rd) = std::fs::read_dir(dir) else { return false };
+    rd.flatten().any(|e| {
+        let n = e.file_name().to_string_lossy().to_string();
+        e.path().is_file() && n.to_lowercase().ends_with(".exe") && !is_noise_exe(&n)
+    })
 }
 
 pub fn find_main_exe(dir: &Path, hint: Option<&str>) -> Option<PathBuf> {
@@ -104,10 +115,6 @@ pub fn find_main_exe(dir: &Path, hint: Option<&str>) -> Option<PathBuf> {
             }
         }
     }
-    if best.is_some() {
-        return best.map(|(_, p)| p);
-    }
-
     let all = walk_files(dir, 4, 4000);
     let mut shipping: Vec<(u64, PathBuf)> = Vec::new();
     let mut others: Vec<(u64, PathBuf)> = Vec::new();
@@ -123,11 +130,33 @@ pub fn find_main_exe(dir: &Path, hint: Option<&str>) -> Option<PathBuf> {
             others.push((size, p));
         }
     }
-    let pick = shipping
-        .into_iter()
-        .max_by_key(|(s, _)| *s)
-        .or_else(|| others.into_iter().max_by_key(|(s, _)| *s));
-    pick.map(|(_, p)| p)
+    let ship_pick = shipping.into_iter().max_by_key(|(s, _)| *s);
+
+    if let Some((score, path)) = best {
+        // Unity: the exe with a matching _Data folder is the game.
+        if score >= 1_000_000_000 {
+            return Some(path);
+        }
+        // A UE game ships tools at its root (crash handlers, redist helpers); the
+        // nested *-Win64-Shipping.exe is the game, not the biggest root exe.
+        let root_is_shipping = path
+            .file_name()
+            .map(|n| {
+                let n = n.to_string_lossy().to_lowercase();
+                n.contains("-win64-shipping") || n.contains("-wingdk-shipping")
+            })
+            .unwrap_or(false);
+        if !root_is_shipping {
+            if let Some((_, ship)) = ship_pick {
+                return Some(ship);
+            }
+        }
+        return Some(path);
+    }
+
+    ship_pick
+        .map(|(_, p)| p)
+        .or_else(|| others.into_iter().max_by_key(|(s, _)| *s).map(|(_, p)| p))
 }
 
 struct NameSignals {
