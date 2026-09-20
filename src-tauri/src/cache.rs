@@ -31,7 +31,7 @@ struct Store {
     detect: BTreeMap<String, DetectEntry>,
 }
 
-const VERSION: u32 = 1;
+const VERSION: u32 = 2;
 const MAX_DETECT: usize = 400;
 const MAX_AGE_DAYS: u64 = 30;
 
